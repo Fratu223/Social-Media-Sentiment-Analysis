@@ -45,3 +45,13 @@ class TwitterKafkaProducer:
             "Authorization": f"Bearer {self.bearer_token}",
             "Content-Type": "application/json",
         }
+
+    def get_stream_rules(self) -> Optional[Dict]:
+        # Get current stream rules
+        try:
+            response=requests.get(self.rules_url, headers=self.get_headers())
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            self.logger.error(f"Error getting stream rules: {e}")
+            return None
