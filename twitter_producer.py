@@ -13,8 +13,6 @@ from kafka import KafkaProducer
 from kafka.errors import KafkaError
 
 class TwitterKafkaProducer:
-
-
     def __init__(self, bearer_token: str, kafka_config: Dict[str, Any], topic: str):
         self.bearer_token = bearer_token
         self.topic = topic
@@ -22,6 +20,6 @@ class TwitterKafkaProducer:
 
         # Setup logging
         logging.basicConfig(
-            level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s'
+            level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
         )
         self.logger = logging.getLogger(__name__)
