@@ -43,6 +43,6 @@ class TwitterKafkaProducer:
     def get_headers(self) -> Dict[str, str]:
         # Get headers for Twitter API requests
         return {
-            "Authorization": f"Bearer {self.bearer_token}", 
+            "Authorization": f"Bearer {self.bearer_token}",
             "Content-Type": "application/json",
         }
