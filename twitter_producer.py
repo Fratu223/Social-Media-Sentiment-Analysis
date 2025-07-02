@@ -60,7 +60,7 @@ class TwitterKafkaProducer:
         # Delete existing stream rules
         if not rule_ids:
             return True
-        
+
         try:
             payload = {"delete": {"ids": rule_ids}}
             response = requests.post(
