@@ -34,3 +34,7 @@ class TwitterKafkaProducer:
         except Exception as e:
             self.logger.error(f"Failed to initialize Kafka producer: {e}")
             raise
+
+        # Twitter API endpoints
+        self.stream_url = "stream_url"
+        self.rules_url = "rules_url"
