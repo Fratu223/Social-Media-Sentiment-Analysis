@@ -55,3 +55,20 @@ class TwitterKafkaProducer:
         except requests.exceptions.RequestException as e:
             self.logger.error(f"Error getting stream rules: {e}")
             return None
+
+    def delete_stream_rules(self, rule_ids: list) -> bool:
+        # Delete existing stream rules
+        if not rule_ids:
+            return True
+        
+        try:
+            payload = {"delete": {"ids": rule_ids}}
+            response = requests.post(
+                self.rules_url, headers=self.get_headers(), json=payload
+            )
+            response.raise_for_status()
+            self.logger.info(f"Deleted {len(rule_ids)} stream rules")
+            return True
+        except requests.exceptions.RequestException as e:
+            self.logger.error(f"Error deleting stream rules: {e}")
+            return False
