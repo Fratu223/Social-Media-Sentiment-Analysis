@@ -39,7 +39,6 @@ class TwitterKafkaProducer:
         self.stream_url = "stream_url"
         self.rules_url = "rules_url"
 
-
     def get_headers(self) -> Dict[str, str]:
         # Get headers for Twitter API requests
         return {
