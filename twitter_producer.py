@@ -24,3 +24,13 @@ class TwitterKafkaProducer:
             level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
         )
         self.logger = logging.getLogger(__name__)
+
+        # Initialize Kafka producer
+        try:
+            self.prducer = KafkaProducer(
+                value_serializer=lambda v: json.dumps(v).encode("utf-8"), **kafka_config
+            )
+            self.logger.info(f"Kafka producer initialized for topic: {topic}")
+        except Exception as e:
+            self.logger.error(f"Failed to initialize Kafka producer: {e}")
+            raise
