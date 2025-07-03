@@ -33,4 +33,4 @@ jobs:
       with:
         commit_message: 'style: auto-fix pre-commit issues'
         skip_dirty_check: true
-        file_pattern: '!.github/workflows/*'
+        file_pattern: '.github/workflows/*'
