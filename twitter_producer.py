@@ -93,7 +93,7 @@ class TwitterKafkaProducer:
             self.logger.error(f"Error adding stream rules: {e}")
             return False
 
-    def setup_stream_rules(self, keywords:list) -> bool:
+    def setup_stream_rules(self, keywords: list) -> bool:
         # Get exisiting rules
         current_rules = self.get_stream_rules()
 
@@ -105,9 +105,8 @@ class TwitterKafkaProducer:
         # Add new rules
         rules = []
         for keyword in keywords:
-            rules.append({
-                "value": keyword,
-                "tag": f"keyword_{keyword.replace(' ','_')}"
-            })
+            rules.append(
+                {"value": keyword, "tag": f"keyword_{keyword.replace(' ','_')}"}
+            )
 
         return self.add_stream_rules(rules)
