@@ -1,15 +1,16 @@
-name: Auto-fix via Pull Request
+name: Pre-commit
 
 on:
+  pull_request:
   push:
     branches: [main, master]
 
 permissions:
   contents: write
-  pull-requests: write
+  actions: read
 
 jobs:
-  auto-fix:
+  pre-commit:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -27,20 +28,9 @@ jobs:
       run: pre-commit run --all-files
       continue-on-error: true
       
-    - name: Create Pull Request with fixes
-      uses: peter-evans/create-pull-request@v5
+    - name: Auto-commit fixes (excluding workflow files)
+      uses: stefanzweifel/git-auto-commit-action@v5
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        commit-message: 'style: auto-fix pre-commit issues'
-        title: '🤖 Auto-fix: Pre-commit Issues'
-        body: |
-          This PR contains automatic fixes for pre-commit issues:
-          
-          - Fixed code formatting
-          - Removed trailing whitespace
-          - Fixed linting issues
-          - Cleaned up imports
-          
-          Please review and merge if the changes look good!
-        branch: auto-fix/pre-commit-${{ github.run_number }}
-        delete-branch: true
+        commit_message: 'style: auto-fix pre-commit issues'
+        skip_dirty_check: true
+        file_pattern: '!.github/workflows/*'
