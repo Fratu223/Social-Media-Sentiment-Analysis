@@ -72,3 +72,23 @@ class TwitterKafkaProducer:
         except requests.exceptions.RequestException as e:
             self.logger.error(f"Error deleting stream rules: {e}")
             return False
+    
+    def add_stream_rules(self, rules: list) -> bool:
+        # Add new stream rules
+        try:
+            payload = {"add": rules}
+            response = requests.post(
+                self.rules_url, headers=self.get_headers(), json=payload
+            )
+            response.raise_for_status()
+            result = response.json()
+
+            if "errors" in result:
+                self.logger.error(f"Error adding rules: {result["errors"]}")
+                return False
+            
+            self.logger.info(f"Added {len(result)} stream rules")
+            return True
+        except requests.exceptions.RequestException as e:
+            self.logger.error(f"Error adding stream rules: {e}")
+            return False
