@@ -134,3 +134,69 @@ class TwitterKafkaProducer:
         except Exception as e:
             self.logger.error(f"Unexpected error publishing to Kafka: {e}")
             return False
+        
+    def stream_tweets(self, tweet_fields: Optional[Dict] = None) -> None:
+        # Stream tweets and publish to Kafka
+        if tweet_fields is None:
+            tweet_fields = [
+                "id", "text", "created_at", "author_id",
+                "public_metrics", "lang", "context_annotation"
+            ]
+
+        params = {
+            "tweet.fields": ",".join(tweet_fields),
+            "expansion": "author_id",
+            "user.fields": "id,name,username,verified,public_metrics"
+        }
+
+        self.logger.info("Starting Twitter stream...")
+
+        try:
+            with requests.get(
+                self.stream_url(),
+                headers=self.get_headers(),
+                params=params,
+                stream=True,
+                timeout=30
+            ) as response:
+                
+                response.raise_for_status()
+                self.logger.info("Connected to Twitter stream")
+
+                for line in response.iter_lines():
+                    if not self.running:
+                        break
+
+                    if line:
+                        try:
+                            tweet_data = json.loads(line.decode('utf-8'))
+
+                            # Skip heartbeat messages
+                            if not tweet_data or "data" not in tweet_data:
+                                continue
+
+                            # Log tweet info
+                            tweet = tweet_data["data"]
+                            self.logger.info(
+                                f"Received tweet: {tweet['id']} - "
+                                f"{tweet['text'][:50]}..."
+                            )
+
+                            # Publish to Kafka
+                            if self.publish_to_kafka(tweet_data):
+                                self.logger.debug(f"Published tweet {tweet['id']} to Kafka")
+
+                        except json.JSONDecodeError as e:
+                            self.logger.error(f"Error parsing tweet JSON: {e}")
+                        except KeyError as e:
+                            self.logger.error(f"Missing expected field in format: {e}")
+                        except Exception as e:
+                            self.logger.error(f"Error processing tweet: {e}")
+        except requests.exceptions.RequestException as e:
+            self.logger.error(f"Error streaming tweets: {e}")
+        except KeyboardInterrupt:
+            self.logger.error("Stream interrupted by user")
+        except Exception as e:
+            self.logger.error(f"Unexpected error in stream: {e}")
+        finally:
+            self.cleanup()
