@@ -2,6 +2,7 @@
 # Import needed libraries
 import json
 import logging
+import os
 import signal
 import sys
 import time
@@ -83,7 +84,7 @@ class TwitterKafkaProducer:
             result = response.json()
 
             if "errors" in result:
-                self.logger.error(f"Error adding rules: {result["errors"]}")
+                self.logger.error(f"Error adding rules: {result['errors']}")
                 return False
 
             self.logger.info(f"Added {len(result)} stream rules")
