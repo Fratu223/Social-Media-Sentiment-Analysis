@@ -110,3 +110,27 @@ class TwitterKafkaProducer:
             )
 
         return self.add_stream_rules(rules)
+
+    def publish_to_kafka(self, tweet_data: Dict[str, Any]) -> bool:
+        # Publish tweet data to Kafka topic
+        try:
+            # Add timestamp for processing
+            tweet_data['kafka_timestamp'] = int(time.time() * 1000)
+
+            future = self.producer.send(self.topic, value=tweet_data)
+            record_metadata = future.get(timeout=10)
+
+            self.logger.debug(
+                f"Tweet published to {record_metadata.topic}"
+                f"partition {record_metadata.partition}"
+                f"offset {record_metadata.offset}"
+            )
+            return True
+
+        except KafkaError as e:
+            self.logger.error(f"Failed to publish tweet to Kafka: {e}")
+            return False
+
+        except Exception as e:
+            self.logger.error(f"Unexpected error publishing to Kafka: {e}")
+            return False
