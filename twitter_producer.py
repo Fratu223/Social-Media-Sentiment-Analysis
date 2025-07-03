@@ -115,7 +115,7 @@ class TwitterKafkaProducer:
         # Publish tweet data to Kafka topic
         try:
             # Add timestamp for processing
-            tweet_data['kafka_timestamp'] = int(time.time() * 1000)
+            tweet_data["kafka_timestamp"] = int(time.time() * 1000)
 
             future = self.producer.send(self.topic, value=tweet_data)
             record_metadata = future.get(timeout=10)
