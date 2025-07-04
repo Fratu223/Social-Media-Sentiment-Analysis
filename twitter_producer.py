@@ -207,3 +207,11 @@ class TwitterKafkaProducer:
             self.logger.error(f"Unexpected error in stream: {e}")
         finally:
             self.cleanup()
+
+    def cleanup(self):
+        # Clean up resources
+        self.running = False
+        if hasattr(self, 'producer'):
+            self.prducer.flush()
+            self.prducer.close()
+            self.logger.info("Kafka producer closed")
