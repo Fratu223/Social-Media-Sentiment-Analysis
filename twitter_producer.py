@@ -211,7 +211,7 @@ class TwitterKafkaProducer:
     def cleanup(self):
         # Clean up resources
         self.running = False
-        if hasattr(self, 'producer'):
+        if hasattr(self, "producer"):
             self.prducer.flush()
             self.prducer.close()
             self.logger.info("Kafka producer closed")
