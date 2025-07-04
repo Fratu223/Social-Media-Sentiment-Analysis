@@ -215,3 +215,8 @@ class TwitterKafkaProducer:
             self.prducer.flush()
             self.prducer.close()
             self.logger.info("Kafka producer closed")
+
+    def signal_handler(self, signum, frame):
+        # Handle shutdown signals
+        self.logger.info(f"Received signal {signum}, shutting down...")
+        self.running = False
