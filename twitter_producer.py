@@ -221,6 +221,7 @@ class TwitterKafkaProducer:
         self.logger.info(f"Received signal {signum}, shutting down...")
         self.running = False
 
+
 def main():
     # Configuration
     BEARER_TOKEN = os.getenv("TWITTER_BEREAR_TOKEN")
@@ -228,12 +229,7 @@ def main():
     KAFKA_TOPIC = os.getenv("KAFKA_TOPIC", "twitter-stream")
 
     # Keywords to track
-    KEYWORDS = [
-        "premier league",
-        "championship",
-        "league one",
-        "league two"
-    ]
+    KEYWORDS = ["premier league", "championship", "league one", "league two"]
 
     if not BEARER_TOKEN:
         print("Error: TWITTER_BEREAR_TOKEN environment variable is required")
@@ -241,19 +237,17 @@ def main():
 
     # Kafka configuration
     kafka_config = {
-        'bootstrap_servers': KAFKA_BOOTSTRAP_SERVERS.split(','),
-        'api_version': (0, 10, 1),
-        'retries': 5,
-        'max_in_flight_requests_per_connection': 1,
-        'acks': 'all'
+        "bootstrap_servers": KAFKA_BOOTSTRAP_SERVERS.split(","),
+        "api_version": (0, 10, 1),
+        "retries": 5,
+        "max_in_flight_requests_per_connection": 1,
+        "acks": "all",
     }
 
     # Initialize producer
     try:
         producer = TwitterKafkaProducer(
-            bearer_token=BEARER_TOKEN,
-            kafka_config=kafka_config,
-            topic=KAFKA_TOPIC
+            bearer_token=BEARER_TOKEN, kafka_config=kafka_config, topic=KAFKA_TOPIC
         )
 
         # Setup signal headers
@@ -271,7 +265,7 @@ def main():
         else:
             print("Failed to setup stream rules")
             sys.exit(1)
-    
+
     except Exception as e:
         print(f"Error: {e}")
         sys.exit(1)
