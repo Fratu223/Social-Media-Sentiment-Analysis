@@ -227,7 +227,7 @@ class TwitterKafkaProducer:
 
 def main():
     # Configuration
-    BEARER_TOKEN = os.getenv("TWITTER_BEREAR_TOKEN")
+    BEARER_TOKEN = os.getenv("TWITTER_BEARER_TOKEN")
     KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
     KAFKA_TOPIC = os.getenv("KAFKA_TOPIC", "twitter-stream")
 
@@ -235,7 +235,7 @@ def main():
     KEYWORDS = ["premier league", "championship", "league one", "league two"]
 
     if not BEARER_TOKEN:
-        print("Error: TWITTER_BEREAR_TOKEN environment variable is required")
+        print("Error: TWITTER_BEARER_TOKEN environment variable is required")
         sys.exit(1)
 
     # Kafka configuration
