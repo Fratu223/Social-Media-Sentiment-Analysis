@@ -39,8 +39,8 @@ class TwitterKafkaProducer:
             raise
 
         # Twitter API endpoints
-        self.stream_url = "stream_url"
-        self.rules_url = "rules_url"
+        self.stream_url = "https://api.twitter.com/2/tweets/search/stream"
+        self.rules_url = "https://api.twitter.com/2/tweets/search/stream/rules"
 
     def get_headers(self) -> Dict[str, str]:
         # Get headers for Twitter API requests
