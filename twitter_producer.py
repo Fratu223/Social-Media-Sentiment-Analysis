@@ -6,7 +6,7 @@ import os
 import signal
 import sys
 import time
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Set
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -21,6 +21,7 @@ class TwitterKafkaProducer:
         self.bearer_token = bearer_token
         self.topic = topic
         self.running = True
+        self.seen_tweets: Set[str] = set()
 
         # Setup logging
         logging.basicConfig(
@@ -39,8 +40,7 @@ class TwitterKafkaProducer:
             raise
 
         # Twitter API endpoints
-        self.stream_url = "https://api.twitter.com/2/tweets/search/stream"
-        self.rules_url = "https://api.twitter.com/2/tweets/search/stream/rules"
+        self.search_url = "https://api.twitter.com/2/tweets/search/recent"
 
     def get_headers(self) -> Dict[str, str]:
         # Get headers for Twitter API requests
