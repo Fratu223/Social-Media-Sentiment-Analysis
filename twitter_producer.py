@@ -49,30 +49,38 @@ class TwitterKafkaProducer:
             "Content-Type": "application/json",
         }
 
-    def search_tweets(self, query: str, max_results: int = 100, tweet_fields: Optional[list] = None) -> Optional[Dict]:
+    def search_tweets(
+        self, query: str, max_results: int = 100, tweet_fields: Optional[list] = None
+    ) -> Optional[Dict]:
         # Search for tweets using recent search endpoint
         if tweet_fields is None:
-            tweet_fields = ["id", "text", "created_at", "author_id", "public_metrics", "lang", "context_annotations"]
+            tweet_fields = [
+                "id",
+                "text",
+                "created_at",
+                "author_id",
+                "public_metrics",
+                "lang",
+                "context_annotations",
+            ]
 
         params = {
             "query": query,
             "max_results": min(max_results, 100),
             "tweet.fields": ",".join(tweet_fields),
             "expansions": "author_id",
-            "user.fields": "id,name,username,verified,public_metrics"
+            "user.fields": "id,name,username,verified,public_metrics",
         }
 
         try:
             response = requests.get(
-                self.search_url,
-                headers=self.get_headers(),
-                params=params
+                self.search_url, headers=self.get_headers(), params=params
             )
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
             self.logger.error(f"Error searching tweets: {e}")
-            if hasattr(e, 'response') and e.response:
+            if hasattr(e, "response") and e.response:
                 self.logger.error(f"Response: {e.response.text}")
             return None
 
