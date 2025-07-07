@@ -25,7 +25,13 @@ jobs:
       run: pip install pre-commit
       
     - name: Run pre-commit
-      run: pre-commit run --all-files
+      id: pre_commit
+      run: |
+        if pre-commit run --all-files; then
+          echo "pre_commit_passed=true" >> $GITHUB_OUTPUT
+        else
+          echo "pre_commit_passed=false" >> $GITHUB_OUTPUT
+        fi
       continue-on-error: true
       
     - name: Check for changes (excluding workflows)
@@ -39,6 +45,8 @@ jobs:
         if [ -n "$(git diff --cached --name-only)" ]; then
           echo "has_changes=true" >> $GITHUB_OUTPUT
           echo "Changes detected (excluding workflows)"
+          echo "Changed files:"
+          git diff --cached --name-only
         else
           echo "has_changes=false" >> $GITHUB_OUTPUT
           echo "No changes to commit"
@@ -53,3 +61,14 @@ jobs:
 
         [skip ci]"
         git push
+
+    - name: Report unfixable issues
+      if: steps.pre_commit.outputs.pre_commit_passed == 'false' && steps.check_changes.outputs.has_changes == 'false'
+      run: |
+        echo "⚠️ Pre-commit found issues that couldn't be auto-fixed!"
+        echo "Please check the pre-commit output above and fix manually."
+        echo "Common issues:"
+        echo "- Syntax errors in Python files"
+        echo "- Complex linting violations"
+        echo "- Files that need manual review"
+        exit 1
