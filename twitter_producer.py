@@ -107,6 +107,73 @@ class TwitterKafkaProducer:
         except Exception as e:
             self.logger.error(f"Unexpected error publishing to Kafka: {e}")
             return False
+        
+    def poll_and_publish(self, query: str, poll_interval: int = 60) -> None:
+        # Poll Twitter search API and publish new tweets to Kafka
+        self.logger.info(f"Starting Twitter search polling for query: {query}")
+        self.logger.info(f"Poll interval: {poll_interval} seconds")
+
+        while self.running:
+            try:
+                # Search for tweets
+                result = self.search_tweets(query)
+
+                if result and "data" in result:
+                    tweets = result['data']
+                    new_tweets = 0
+
+                    for tweet in tweets:
+                        tweet_id = tweet['id']
+
+                        # Skip if we've already seen this tweet
+                        if tweet_id in self.seen_tweets:
+                            continue
+
+                        # Add to seen tweets set
+                        self.seen_tweets.add(tweet_id)
+
+                        # Create tweet data structure
+                        tweet_data = {
+                            "data": tweet,
+                            "includes": result.get("includes", {})
+                        }
+
+                        # Log tweet info
+                        self.logger.info(
+                            f"New tweet: {tweet['id']} -"
+                            f"{tweet['text'][:50]}..."
+                        )
+
+                        # Publish to Kafka
+                        if self.publish_to_kafka(tweet_data):
+                            new_tweets += 1
+                            self.logger.debug(f"Published tweet {tweet['id']} to Kafka")
+
+                    self.logger.info(f"Processed {new_tweets} new tweets")
+
+                    # Clean up seen tweets set if it gets too large
+                    if len(self.seen_tweets) > 10000:
+                        self.logger.info("Cleaning up seen tweets cache")
+                        self.seen_tweets.clear()
+
+                elif result and "errors" in result:
+                    self.logger.error(f"API errors: {result["errors"]}")
+                else:
+                    self.logger.info("No new tweets found")
+
+                # Wait before next poll
+                if self.running:
+                    time.sleep(poll_interval)
+
+            except KeyboardInterrupt:
+                self.logger.info("polling interrupted by user")
+                break
+            except Exception as e:
+                self.logger.error(f"Error in polling loop: {e}")
+                if self.running:
+                    time.sleep(poll_interval)
+
+        self.cleanup()
 
     def cleanup(self):
         # Clean up resources
