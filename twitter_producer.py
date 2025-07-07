@@ -50,7 +50,7 @@ class TwitterKafkaProducer:
         }
 
     def search_tweets(
-        self, query: str, max_results: int = 100, tweet_fields: Optional[list] = None
+        self, query: str, max_results: int = 10, tweet_fields: Optional[list] = None
     ) -> Optional[Dict]:
         # Search for tweets using recent search endpoint
         if tweet_fields is None:
@@ -192,8 +192,8 @@ def main():
     # Configuration
     BEARER_TOKEN = os.getenv("TWITTER_BEARER_TOKEN")
     KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
-    KAFKA_TOPIC = os.getenv("KAFKA_TOPIC", "twitter-stream")
-    POLL_INTERVAL = int(os.getenv("POLL_INTERVAL", "60"))
+    KAFKA_TOPIC = os.getenv("KAFKA_TOPIC", "twitter-search")
+    POLL_INTERVAL = int(os.getenv("POLL_INTERVAL", "900"))
 
     # Search query
     SEARCH_QUERY = os.getenv("SEARCH_QUERY", "premierleague OR championship")
