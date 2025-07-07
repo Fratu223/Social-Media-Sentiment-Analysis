@@ -107,7 +107,7 @@ class TwitterKafkaProducer:
         except Exception as e:
             self.logger.error(f"Unexpected error publishing to Kafka: {e}")
             return False
-        
+
     def poll_and_publish(self, query: str, poll_interval: int = 60) -> None:
         # Poll Twitter search API and publish new tweets to Kafka
         self.logger.info(f"Starting Twitter search polling for query: {query}")
