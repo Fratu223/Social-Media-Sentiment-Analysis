@@ -87,6 +87,11 @@ class TwitterKafkaProducer:
     def publish_to_kafka(self, tweet_data: Dict[str, Any]) -> bool:
         # Publish tweet data to Kafka topic
         try:
+            # Check if producer exists
+            if not hasattr(self, 'producer') or self.producer is None:
+                self.logger.error("Kafka producer not initialized")
+                return False
+
             # Add timestamp for processing
             tweet_data["kafka_timestamp"] = int(time.time() * 1000)
 
@@ -106,6 +111,7 @@ class TwitterKafkaProducer:
 
         except Exception as e:
             self.logger.error(f"Unexpected error publishing to Kafka: {e}")
+            self.logger.error(f"Producer state: {hasattr(self, 'producer')}")
             return False
 
     def poll_and_publish(self, query: str, poll_interval: int = 60) -> None:
