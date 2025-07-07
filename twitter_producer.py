@@ -119,11 +119,11 @@ class TwitterKafkaProducer:
                 result = self.search_tweets(query)
 
                 if result and "data" in result:
-                    tweets = result['data']
+                    tweets = result["data"]
                     new_tweets = 0
 
                     for tweet in tweets:
-                        tweet_id = tweet['id']
+                        tweet_id = tweet["id"]
 
                         # Skip if we've already seen this tweet
                         if tweet_id in self.seen_tweets:
@@ -135,13 +135,12 @@ class TwitterKafkaProducer:
                         # Create tweet data structure
                         tweet_data = {
                             "data": tweet,
-                            "includes": result.get("includes", {})
+                            "includes": result.get("includes", {}),
                         }
 
                         # Log tweet info
                         self.logger.info(
-                            f"New tweet: {tweet['id']} -"
-                            f"{tweet['text'][:50]}..."
+                            f"New tweet: {tweet['id']} -" f"{tweet['text'][:50]}..."
                         )
 
                         # Publish to Kafka
