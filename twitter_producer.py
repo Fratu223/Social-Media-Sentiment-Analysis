@@ -157,7 +157,7 @@ class TwitterKafkaProducer:
                         self.seen_tweets.clear()
 
                 elif result and "errors" in result:
-                    self.logger.error(f"API errors: {result["errors"]}")
+                    self.logger.error(f"API errors: {result['errors']}")
                 else:
                     self.logger.info("No new tweets found")
 
