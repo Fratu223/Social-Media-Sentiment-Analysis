@@ -193,9 +193,10 @@ def main():
     BEARER_TOKEN = os.getenv("TWITTER_BEARER_TOKEN")
     KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
     KAFKA_TOPIC = os.getenv("KAFKA_TOPIC", "twitter-stream")
+    POLL_INTERVAL = int(os.getenv("POLL_INTERVAL", "60"))
 
-    # Keywords to track
-    KEYWORDS = ["premier league", "championship", "league one", "league two"]
+    # Search query
+    SEARCH_QUERY = os.getenv("SEARCH_QUERY", "premierleague OR championship")
 
     if not BEARER_TOKEN:
         print("Error: TWITTER_BEARER_TOKEN environment variable is required")
@@ -220,17 +221,13 @@ def main():
         signal.signal(signal.SIGINT, producer.signal_handler)
         signal.signal(signal.SIGTERM, producer.signal_handler)
 
-        # Setup stream rules
-        if producer.setup_stream_rules(KEYWORDS):
-            print(f"Stream rules setup successfully for keywords: {KEYWORDS}")
-            print(f"Publishing tweets to Kafka topic: {KAFKA_TOPIC}")
-            print("Press CTRL+C to stop...")
+        print(f"Search query: {SEARCH_QUERY}")
+        print(f"Publishing tweets to Kafka topic: {KAFKA_TOPIC}")
+        print(f"Poll interval: {POLL_INTERVAL} seconds")
+        print("Press Ctrl+C to stop...")
 
-            # Start streaming
-            producer.stream_tweets()
-        else:
-            print("Failed to setup stream rules")
-            sys.exit(1)
+        # Start polling
+        producer.poll_and_publish(SEARCH_QUERY, POLL_INTERVAL)
 
     except Exception as e:
         print(f"Error: {e}")
