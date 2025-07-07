@@ -88,7 +88,7 @@ class TwitterKafkaProducer:
         # Publish tweet data to Kafka topic
         try:
             # Check if producer exists
-            if not hasattr(self, 'producer') or self.producer is None:
+            if not hasattr(self, "producer") or self.producer is None:
                 self.logger.error("Kafka producer not initialized")
                 return False
 
