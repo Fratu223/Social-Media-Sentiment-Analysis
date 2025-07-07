@@ -193,7 +193,7 @@ def main():
     BEARER_TOKEN = os.getenv("TWITTER_BEARER_TOKEN")
     KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
     KAFKA_TOPIC = os.getenv("KAFKA_TOPIC", "twitter-search")
-    POLL_INTERVAL = int(os.getenv("POLL_INTERVAL", "900"))
+    POLL_INTERVAL = int(os.getenv("POLL_INTERVAL", "60"))
 
     # Search query
     SEARCH_QUERY = os.getenv("SEARCH_QUERY", "premierleague OR championship")
