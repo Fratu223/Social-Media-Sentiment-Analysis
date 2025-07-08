@@ -85,7 +85,7 @@ class TwitterKafkaProducer:
                 try:
                     error_data = response.json()
                     if "errors" in error_data:
-                        for error in error_data['errors']:
+                        for error in error_data["errors"]:
                             self.logger.error(f"API Error: {error}")
                 except:
                     pass
