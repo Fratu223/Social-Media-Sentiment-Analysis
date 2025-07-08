@@ -30,7 +30,7 @@ class TwitterKafkaProducer:
         # Initialize Kafka producer
         self.producer = None
         try:
-            self.prducer = KafkaProducer(
+            self.producer = KafkaProducer(
                 value_serializer=lambda v: json.dumps(v).encode("utf-8"), **kafka_config
             )
             self.logger.info(f"Kafka producer initialized for topic: {topic}")
@@ -60,7 +60,6 @@ class TwitterKafkaProducer:
                 "author_id",
                 "public_metrics",
                 "lang",
-                "context_annotations",
             ]
 
         params = {
@@ -68,13 +67,29 @@ class TwitterKafkaProducer:
             "max_results": min(max_results, 100),
             "tweet.fields": ",".join(tweet_fields),
             "expansions": "author_id",
-            "user.fields": "id,name,username,verified,public_metrics",
+            "user.fields": "id,name,username,public_metrics",
         }
 
         try:
             response = requests.get(
                 self.search_url, headers=self.get_headers(), params=params
             )
+
+            # Log the actual request URL and response for debugging
+            self.logger.debug(f"Request URL: {response.url}")
+            self.logger.debug(f"Response status: {response.status_code}")
+
+            if response.status_code == 400:
+                self.logger.error(f"Bad Request (400): {response.text}")
+                # Try to parse error details
+                try:
+                    error_data = response.json()
+                    if "errors" in error_data:
+                        for error in error_data['errors']:
+                            self.logger.error(f"API Error: {error}")
+                except:
+                    pass
+                return None
 
             # Handle rate limiting
             if response.status_code == 429:
@@ -104,7 +119,7 @@ class TwitterKafkaProducer:
                 # Log rate limit headers for debugging
                 if "x-rate-limit-remaining" in e.response.headers:
                     remaining = e.response.headers["x-rate-limit-remaining"]
-                    reset_time = e.response.headers(
+                    reset_time = e.response.headers.get(
                         "x-rate-limit-remaining-reset", "unknown"
                     )
                     self.logger.info(
@@ -213,8 +228,8 @@ class TwitterKafkaProducer:
         self.running = False
         if hasattr(self, "producer") and self.producer is not None:
             try:
-                self.prducer.flush()
-                self.prducer.close()
+                self.producer.flush()
+                self.producer.close()
                 self.logger.info("Kafka producer closed")
             except Exception as e:
                 self.logger.error(f"Error closing Kafka producer: {e}")
@@ -259,7 +274,7 @@ def main():
             bearer_token=BEARER_TOKEN, kafka_config=kafka_config, topic=KAFKA_TOPIC
         )
 
-        # Setup signal headers
+        # Setup signal handlers
         signal.signal(signal.SIGINT, producer.signal_handler)
         signal.signal(signal.SIGTERM, producer.signal_handler)
 
