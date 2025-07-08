@@ -78,14 +78,16 @@ class TwitterKafkaProducer:
 
             # Handle rate limiting
             if response.status_code == 429:
-                reset_time = response.headers.get('x-rate-limit-reset')
+                reset_time = response.headers.get("x-rate-limit-reset")
                 if reset_time:
                     reset_timestamp = int(reset_time)
                     current_time = int(time.time())
                     wait_time = reset_timestamp - current_time + 60
 
                     if wait_time > 0:
-                        self.logger.warning(f"Rate limit exceeded. Waiting {wait_time} seconds until reset...")
+                        self.logger.warning(
+                            f"Rate limit exceeded. Waiting {wait_time} seconds until reset..."
+                        )
                         time.sleep(wait_time)
 
                     # Retry the request
@@ -100,10 +102,14 @@ class TwitterKafkaProducer:
             if hasattr(e, "response") and e.response:
                 self.logger.error(f"Response: {e.response.text}")
                 # Log rate limit headers for debugging
-                if 'x-rate-limit-remaining' in e.response.headers:
-                    remaining = e.response.headers['x-rate-limit-remaining']
-                    reset_time = e.response.headers('x-rate-limit-remaining-reset', 'unknown')
-                    self.logger.info(f"Rate limit remaining: {remaining}, reset at: {reset_time}")
+                if "x-rate-limit-remaining" in e.response.headers:
+                    remaining = e.response.headers["x-rate-limit-remaining"]
+                    reset_time = e.response.headers(
+                        "x-rate-limit-remaining-reset", "unknown"
+                    )
+                    self.logger.info(
+                        f"Rate limit remaining: {remaining}, reset at: {reset_time}"
+                    )
             return None
 
     def publish_to_kafka(self, tweet_data: Dict[str, Any]) -> bool:
