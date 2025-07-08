@@ -50,7 +50,7 @@ class TwitterKafkaProducer:
         }
 
     def search_tweets(
-        self, query: str, max_results: int = 10, tweet_fields: Optional[list] = None
+        self, query: str, max_results: int = 2, tweet_fields: Optional[list] = None
     ) -> Optional[Dict]:
         # Search for tweets using recent search endpoint
         if tweet_fields is None:
