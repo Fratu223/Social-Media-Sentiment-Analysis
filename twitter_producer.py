@@ -9,8 +9,6 @@ import time
 from typing import Dict, Any, Optional, Set
 from dotenv import load_dotenv
 
-load_dotenv()
-
 import requests
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
@@ -195,6 +193,9 @@ class TwitterKafkaProducer:
 
 
 def main():
+    # Load environment variables from .env file
+    load_dotenv()
+
     # Configuration
     BEARER_TOKEN = os.getenv("TWITTER_BEARER_TOKEN")
     KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
