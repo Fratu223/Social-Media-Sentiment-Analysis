@@ -28,6 +28,7 @@ class TwitterKafkaProducer:
         self.logger = logging.getLogger(__name__)
 
         # Initialize Kafka producer
+        self.producer = None
         try:
             self.prducer = KafkaProducer(
                 value_serializer=lambda v: json.dumps(v).encode("utf-8"), **kafka_config
@@ -74,12 +75,35 @@ class TwitterKafkaProducer:
             response = requests.get(
                 self.search_url, headers=self.get_headers(), params=params
             )
+
+            # Handle rate limiting
+            if response.status_code == 429:
+                reset_time = response.headers.get('x-rate-limit-reset')
+                if reset_time:
+                    reset_timestamp = int(reset_time)
+                    current_time = int(time.time())
+                    wait_time = reset_timestamp - current_time + 60
+
+                    if wait_time > 0:
+                        self.logger.warning(f"Rate limit exceeded. Waiting {wait_time} seconds until reset...")
+                        time.sleep(wait_time)
+
+                    # Retry the request
+                    response = requests.get(
+                        self.search_url, headers=self.get_headers(), params=params
+                    )
+
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
             self.logger.error(f"Error searching tweets: {e}")
             if hasattr(e, "response") and e.response:
                 self.logger.error(f"Response: {e.response.text}")
+                # Log rate limit headers for debugging
+                if 'x-rate-limit-remaining' in e.response.headers:
+                    remaining = e.response.headers['x-rate-limit-remaining']
+                    reset_time = e.response.headers('x-rate-limit-remaining-reset', 'unknown')
+                    self.logger.info(f"Rate limit remaining: {remaining}, reset at: {reset_time}")
             return None
 
     def publish_to_kafka(self, tweet_data: Dict[str, Any]) -> bool:
@@ -181,10 +205,15 @@ class TwitterKafkaProducer:
     def cleanup(self):
         # Clean up resources
         self.running = False
-        if hasattr(self, "producer"):
-            self.prducer.flush()
-            self.prducer.close()
-            self.logger.info("Kafka producer closed")
+        if hasattr(self, "producer") and self.producer is not None:
+            try:
+                self.prducer.flush()
+                self.prducer.close()
+                self.logger.info("Kafka producer closed")
+            except Exception as e:
+                self.logger.error(f"Error closing Kafka producer: {e}")
+        else:
+            self.logger.warning("No Kafka producer to close")
 
     def signal_handler(self, signum, frame):
         # Handle shutdown signals
