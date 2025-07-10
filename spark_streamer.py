@@ -74,3 +74,84 @@ class TwitterSparkStreamer:
         except Exception as e:
             self.logger.error(f"Failed to initialize Spark session: {e}")
             raise
+
+    def get_tweet_schema(self) -> StructType:
+        # Define the schema for tweet data structure
+        return StructType(
+            [
+                StructField(
+                    "data",
+                    StructType(
+                        [
+                            StructField("id", StringType(), True),
+                            StructField("text", StringType(), True),
+                            StructField("created_at", StringType(), True),
+                            StructField("author_id", StringType(), True),
+                            StructField("lang", StringType(), True),
+                            StructField(
+                                "public_metrics",
+                                StringType(
+                                    [
+                                        StructField(
+                                            "retweet_count", IntegerType(), True
+                                        ),
+                                        StructField("reply_count", IntegerType(), True),
+                                        StructField("quote_count", IntegerType(), True),
+                                    ]
+                                ),
+                                True,
+                            ),
+                        ]
+                    ),
+                    True,
+                ),
+                StructField(
+                    "includes",
+                    StructType(
+                        [
+                            StructField(
+                                "users",
+                                ArrayType(
+                                    [
+                                        StructField("id", StringType(), True),
+                                        StructField("name", StringType(), True),
+                                        StructField("username", StringType(), True),
+                                        StructField(
+                                            "public_metrics",
+                                            StructType(
+                                                [
+                                                    StructField(
+                                                        "followers_count",
+                                                        IntegerType(),
+                                                        True,
+                                                    ),
+                                                    StructField(
+                                                        "following_count",
+                                                        IntegerType(),
+                                                        True,
+                                                    ),
+                                                    StructField(
+                                                        "tweet_count",
+                                                        IntegerType(),
+                                                        True,
+                                                    ),
+                                                    StructField(
+                                                        "listed_count",
+                                                        IntegerType(),
+                                                        True,
+                                                    ),
+                                                ]
+                                            ),
+                                            True,
+                                        ),
+                                    ]
+                                ),
+                                True,
+                            )
+                        ]
+                    ),
+                    True,
+                ),
+                StructField("kafka_timestamp", LongType(), True),
+            ]
+        )
