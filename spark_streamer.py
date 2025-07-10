@@ -63,7 +63,7 @@ class TwitterSparkStreamer:
                         "org.apache.spark:spark-sql-kafka-0-10_2.12:3.4.0") \
                 .config("spark.streaming.stopGracefullyOnShutdown", "true") \
                 .getOrCreate()
-            
+
             # Set log level to reduce noise
             self.spark.sparkContext.setLogLevel("WARN")
             self.logger.info("Spark session initialized successfully")
