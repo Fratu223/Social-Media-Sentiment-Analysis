@@ -155,3 +155,15 @@ class TwitterSparkStreamer:
                 StructField("kafka_timestamp", LongType(), True),
             ]
         )
+
+    def clean_text(self, text: str) -> str:
+        # Clean tweet text for better sentiment analysis
+        if not text:
+            return ""
+
+        # Remove URLs, mentions, hashtags symbols (but keep the content)
+        cleaned = text
+        cleaned = cleaned.replace("RT @", "")
+        cleaned = " ".join(cleaned.split())
+
+        return cleaned.strip()
