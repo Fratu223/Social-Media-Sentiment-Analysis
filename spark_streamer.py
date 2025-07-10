@@ -55,14 +55,17 @@ class TwitterSparkStreamer:
     def init_spark_session(self):
         # Initialize Spark session with Kafka integration
         try:
-            self.spark = SparkSession.builder \
-                .appName("TwitterSentimentStreaming") \
-                .config("spark.sql.adaptive.enabled", "true") \
-                .config("spark.sql.adaptive.coalescePartitions.enabled", "true") \
-                .config("spark.jars.packages",
-                        "org.apache.spark:spark-sql-kafka-0-10_2.12:3.4.0") \
-                .config("spark.streaming.stopGracefullyOnShutdown", "true") \
+            self.spark = (
+                SparkSession.builder.appName("TwitterSentimentStreaming")
+                .config("spark.sql.adaptive.enabled", "true")
+                .config("spark.sql.adaptive.coalescePartitions.enabled", "true")
+                .config(
+                    "spark.jars.packages",
+                    "org.apache.spark:spark-sql-kafka-0-10_2.12:3.4.0",
+                )
+                .config("spark.streaming.stopGracefullyOnShutdown", "true")
                 .getOrCreate()
+            )
 
             # Set log level to reduce noise
             self.spark.sparkContext.setLogLevel("WARN")
