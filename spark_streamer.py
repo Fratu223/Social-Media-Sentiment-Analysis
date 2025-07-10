@@ -51,3 +51,26 @@ class TwitterSparkStreamer:
 
         # Define schema for tweet data
         self.tweet_schema = self.get_tweet_schema()
+
+    def init_spark_session(self):
+        # Initialize Spark session with Kafka integration
+        try:
+            self.spark = (
+                SparkSession.builder.appName("TwitterSentimentStreaming")
+                .config("spark.sql.adaptive.enabled", "true")
+                .config("spark.sql.adaptive.coalescePartitions.enabled", "true")
+                .config(
+                    "spark.jars.packages",
+                    "org.apache.spark:spark-sql-kafka-0-10_2.12:3.4.0",
+                )
+                .config("spark.streaming.stopGracefullyOnShutdown", "true")
+                .getOrCreate()
+            )
+
+            # Set log level to reduce noise
+            self.spark.sparkContext.setLogLevel("WARN")
+            self.logger.info("Spark session initialized successfully")
+
+        except Exception as e:
+            self.logger.error(f"Failed to initialize Spark session: {e}")
+            raise
