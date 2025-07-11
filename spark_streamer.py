@@ -409,3 +409,48 @@ class TwitterSparkStreamer:
         self.logger.info(f"Received signal {signum}, shutting down...")
         self.cleanup()
         sys.exit(0)
+
+
+def main():
+    # Load environment variables
+    load_dotenv()
+
+    # Configuration
+    KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
+    KAFKA_TOPIC = os.getenv("KAFKA_TOPIC", "twitter-search")
+    SENTIMENT_API_URL = os.getenv("SENTIMENT_API_URL", "http://localhost:5000/analyze")
+    OUTPUT_PATH = os.getenv("OUTPUT_PATH", "/tmp/twitter_sentiment_output")
+
+    # Kafka configuration
+    kafka_config = {
+        "bootstrap_servers": KAFKA_BOOTSTRAP_SERVERS,
+        "topic": KAFKA_TOPIC,
+        "output_path": OUTPUT_PATH,
+    }
+
+    # Initialize streamer
+    try:
+        streamer = TwitterSparkStreamer(kafka_config, SENTIMENT_API_URL)
+
+        # Setup signal handlers
+        signal.signal(signal.SIGINT, streamer.signal_handler)
+        signal.signal(signal.SIGTERM, streamer.signal_handler)
+
+        print("Starting Twitter sentiment streaming...")
+        print(f"Reading from Kafka topic: {KAFKA_TOPIC}")
+        print(f"Sentiment API URL: {SENTIMENT_API_URL}")
+        print(f"Output path: {OUTPUT_PATH}")
+        print("Press Ctrl+C to stop...")
+
+        # Start processing
+        streamer.process_tweets()
+
+    except KeyboardInterrupt:
+        print("\nShutdown requested by user")
+    except Exception as e:
+        print(f"Error: {e}")
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
