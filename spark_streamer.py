@@ -403,3 +403,9 @@ class TwitterSparkStreamer:
                 self.logger.info("Spark session stopped")
             except Exception as e:
                 self.logger.error(f"Error stopping Spark session: {e}")
+
+    def signal_handler(self, signum, frame):
+        # Handle shutdown signals
+        self.logger.info(f"Received signal {signum}, shutting down...")
+        self.cleanup()
+        sys.exit(0)
