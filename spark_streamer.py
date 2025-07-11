@@ -207,3 +207,189 @@ class TwitterSparkStreamer:
                 "negative": 0.0,
                 "neutral": 1.0,
             }
+
+    def process_tweets(self):
+        # Process tweets from Kafka stream
+        try:
+            # Read from Kafka
+            kafka_df = (
+                self.spark.readStream.format("kafka")
+                .option(
+                    "kafka.bootstrap.servers", self.kafka_config["bootstrap_servers"]
+                )
+                .option("subscribe", self.kafka_config["topic"])
+                .option("startingOffsets", "latest")
+                .option("failOnDataLoss", "false")
+                .load()
+            )
+
+            # Parse JSON data
+            parsed_df = kafka_df.select(
+                from_json(col("value").cast("string"), self.tweet_schema).alias(
+                    "tweet_data"
+                ),
+                col("timestamp").alias("kafka_received_timestamp"),
+            )
+
+            # Extract tweet fields
+            tweets_df = parsed_df.select(
+                col("tweet_data.data.id").alias("tweet_id"),
+                col("tweet_data.data.text").alias("tweet_text"),
+                col("tweet_data.data.created_at").alias("created_at"),
+                col("tweet_data.data.author_id").alias("author_id"),
+                col("tweet_data.data.lang").alias("language"),
+                col("tweet_data.data.public_metrics.retweet_count").alias(
+                    "retweet_count"
+                ),
+                col("tweet_data.data.public_metrics.like_count").alias("like_count"),
+                col("tweet_data.data.public_metrics.reply_count").alias("reply_count"),
+                col("tweet_data.data.public_metrics.quote_count").alias("quote_count"),
+                col("tweet_data.includes.users").alias("users"),
+                col("tweet_data.kafka_timestamp").alias("kafka_timestamp"),
+                col("kafka_received_timestamp"),
+                current_timestamp().alias("processed_timestamp"),
+            )
+
+            # Clean tweet text
+            clean_text_udf = udf(self.clean_text, StringType())
+            tweets_df = tweets_df.withColumn(
+                "cleaned_text", clean_text_udf(col("tweet_text"))
+            )
+
+            # Filter out empty tweets and non-English tweets for sentiment analysis
+            filtered_df = tweets_df.filter(
+                (col("cleaned_text").isNotNull())
+                & (col("cleaned_text") != "")
+                & (col("language") == "en")
+            )
+
+            # Define UDF for sentiment analysis
+            def get_sentiment(text):
+                if not text:
+                    return json.dumps(
+                        {
+                            "sentiment": "neutral",
+                            "confidence": 0.0,
+                            "compound": 0.0,
+                            "positive": 0.0,
+                            "negative": 0.0,
+                            "neutral": 1.0,
+                        }
+                    )
+
+                result = self.call_sentiment_api(text)
+                return json.dumps(result)
+
+            sentiment_udf = udf(get_sentiment, StringType())
+
+            # Add sentiment analysis
+            enriched_df = filtered_df.withColumn(
+                "sentiment_raw", sentiment_udf(col("cleaned_text"))
+            )
+
+            # Parse sentiment JSON
+            sentiment_schema = StructType(
+                [
+                    StructField("sentiment", StringType(), True),
+                    StructField("confidence", DoubleType(), True),
+                    StructField("compound", DoubleType(), True),
+                    StructField("positive", DoubleType(), True),
+                    StructField("negative", DoubleType(), True),
+                    StructField("neutral", DoubleType(), True),
+                ]
+            )
+
+            final_df = (
+                enriched_df.select(
+                    col("tweet_id"),
+                    col("tweet_text"),
+                    col("cleaned_text"),
+                    col("created_at"),
+                    col("author_id"),
+                    col("language"),
+                    col("retweet_count"),
+                    col("like_count"),
+                    col("reply_count"),
+                    col("quote_count"),
+                    col("users"),
+                    col("kafka_timestamp"),
+                    col("kafka_received_timestamp"),
+                    col("processed_timestamp"),
+                    from_json(col("sentiment_raw"), sentiment_schema).alias(
+                        "sentiment_data"
+                    ),
+                )
+                .select(
+                    "*",
+                    col("sentiment_data.sentiment").alias("sentiment"),
+                    col("sentiment_data.confidence").alias("sentiment_confidence"),
+                    col("sentiment_data.compound").alias("sentiment_compound"),
+                    col("sentiment_data.positive").alias("sentiment_positive"),
+                    col("sentiment_data.negative").alias("sentiment_negative"),
+                    col("sentiment_data.neutral").alias("sentiment_neutral"),
+                )
+                .drop("sentiment_data", "sentiment_raw")
+            )
+
+            # Write to console for monitoring
+            console_query = (
+                final_df.writeStream.outputMode("append")
+                .format("console")
+                .option("truncate", "false")
+                .trigger(processingTime="30 seconds")
+                .start()
+            )
+
+            # Write to file (JSON format)
+            output_path = self.kafka_config.get(
+                "output_path", "/tmp/twitter_sentiment_output"
+            )
+
+            file_query = (
+                final_df.writeStream.outputMode("append")
+                .format("json")
+                .option("path", output_path)
+                .option("checkpointLocation", f"{output_path}/checkpoints")
+                .trigger(processingTime="60 seconds")
+                .start()
+            )
+
+            # Forward enriched data to sentiment analysis service
+            def send_to_sentiment_service(df, epoch_id):
+                try:
+                    # Convert to JSON and send to sentiment anlysis service
+                    tweets_json = df.toJSON().collect()
+
+                    for tweet_json in tweets_json:
+                        try:
+                            requests.post(
+                                f"{self.sentiment_api_url}/store",
+                                json=json.loads(tweet_json),
+                                timeout=5,
+                            )
+                        except Exception as e:
+                            self.logger.error(
+                                f"Error sending tweet to sentiment service {e}"
+                            )
+
+                except Exception as e:
+                    self.logger.error(f"Error in batch processing: {e}")
+
+            # Send to sentiment analysis service
+            service_query = (
+                final_df.writeStream.outputMode("append")
+                .foreachBatch(send_to_sentiment_service)
+                .trigger(processingTime="30 seconds")
+                .start()
+            )
+
+            self.logger.info("Streaming queries started successfully")
+
+            # Wait for termination
+            console_query.awaitTermination()
+            file_query.awaitTermination()
+            service_query.awaitTermination()
+
+        except Exception as e:
+            self.logger.error(f"Error in stream processing: {e}")
+            raise
