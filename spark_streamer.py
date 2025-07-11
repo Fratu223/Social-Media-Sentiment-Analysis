@@ -393,3 +393,13 @@ class TwitterSparkStreamer:
         except Exception as e:
             self.logger.error(f"Error in stream processing: {e}")
             raise
+
+    def cleanup(self):
+        # Clean up resources
+        self.running = False
+        if self.spark:
+            try:
+                self.spark.stop()
+                self.logger.info("Spark session stopped")
+            except Exception as e:
+                self.logger.error(f"Error stopping Spark session: {e}")
