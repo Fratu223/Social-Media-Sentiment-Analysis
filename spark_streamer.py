@@ -167,3 +167,43 @@ class TwitterSparkStreamer:
         cleaned = " ".join(cleaned.split())
 
         return cleaned.strip()
+
+    def call_sentiment_api(self, text: str) -> Dict[str, Any]:
+        # Call the sentiment analysis API
+        try:
+            if not text or not text.strip():
+                return {
+                    "sentiment": "neutral",
+                    "confidence": 0.0,
+                    "compound": 0.0,
+                    "positive": 0.0,
+                    "negative": 0.0,
+                    "neutral": 1.0,
+                }
+
+            response = requests.post(
+                self.sentiment_api_url, json={"text": text}, timeout=10
+            )
+
+            if response.status_code == 200:
+                return response.json()
+            else:
+                self.logger.warning(f"Sentiment API error: {response.status_code}")
+                return {
+                    "sentiment": "neutral",
+                    "confidence": 0.0,
+                    "compound": 0.0,
+                    "positive": 0.0,
+                    "negative": 0.0,
+                    "neutral": 1.0,
+                }
+        except Exception as e:
+            self.logger.error(f"Error calling sentiment API: {e}")
+            return {
+                "sentiment": "neutral",
+                "confidence": 0.0,
+                "compound": 0.0,
+                "positive": 0.0,
+                "negative": 0.0,
+                "neutral": 1.0,
+            }
