@@ -39,3 +39,18 @@ class SentimentAnalyzer:
         # Initialize Flask app
         self.app = Flask(__name__)
         self.setup_routes()
+
+    def init_database(self):
+        # Initialize database connection and create tables
+        try:
+            if self.use_postgresql:
+                self.init_postgresql()
+            else:
+                self.init_sqlite()
+
+            self.create_tables()
+            self.logger.info("Database initialized successfully")
+
+        except Exception as e:
+            self.logger.error(f"Failed to initialize database: {e}")
+            raise
