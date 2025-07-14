@@ -11,3 +11,4 @@ textblob==0.18.0
 requests==2.31.0
 python-dotenv==1.0.1
 flask==2.2.5
+werkzeug==2.2.3
