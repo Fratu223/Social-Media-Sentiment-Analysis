@@ -71,3 +71,15 @@ class SentimentAnalyzer:
         except Exception as e:
             self.logger.error(f"Failed to connect to PostgreSQL: {e}")
             raise
+
+    def init_sqlite(self):
+        # Initialize SQLite connection
+        try:
+            db_path = os.getenv("SQLITE_DB_PATH", "twitter_sentiment.db")
+            self.db_connection = sqlite3.connect(db_path, check_same_thread=False)
+            self.db_connection.row_factory = sqlite3.Row
+            self.logger.info(f"SQLite database initialized: {db_path}")
+
+        except Exception as e:
+            self.logger.error(f"Failed to initialize SQLite: {e}")
+            raise
