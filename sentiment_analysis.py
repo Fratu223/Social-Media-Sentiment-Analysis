@@ -54,3 +54,20 @@ class SentimentAnalyzer:
         except Exception as e:
             self.logger.error(f"Failed to initialize database: {e}")
             raise
+
+    def init_postgresql(self):
+        # Initialize Postgresql connection
+        try:
+            self.db_connection = psycopg2.connect(
+                host=self.db_config["host"],
+                database=self.db_config["database"],
+                user=self.db_config["user"],
+                password=self.db_config["password"],
+                port=self.db_config.get("port", 5432),
+            )
+            self.db_connection.autocommit = True
+            self.logger.info("PostgreSQL connection established")
+
+        except Exception as e:
+            self.logger.error(f"Failed to connect to PostgreSQL: {e}")
+            raise
