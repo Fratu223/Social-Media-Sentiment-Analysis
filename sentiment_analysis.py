@@ -184,7 +184,7 @@ class SentimentAnalyzer:
                         -- Combined sentiment
                         final_sentiment TEXT,
                         confidence_score REAL,
-  
+
                         -- Metadat
                         processed_at TEXT DEFAULT CURRENT_TIMESTAMP,
                         kafka_timestamp INTEGER
