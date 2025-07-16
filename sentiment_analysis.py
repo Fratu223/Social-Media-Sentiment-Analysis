@@ -105,27 +105,27 @@ class SentimentAnalyzer:
                         like_count INTEGER DEFAULT 0,
                         reply_count INTEGER DEFAULT 0,
                         quote_count INTEGER DEFAULT 0,
-                        
+
                         -- VADER sentiment scores
                         vader_sentiment VARCHAR(20),
                         vader_compound FLOAT,
                         vader_positive FLOAT,
                         vader_negative FLOAT,
                         vader_neutral FLOAT,
-                               
+
                         -- TextBlob sentiment scores
                         textblob_sentiment VARCHAR(20),
                         textblob_polarity FLOAT,
                         textblob_subjectivity FLOAT,
-                               
+
                         -- Combined sentiment
                         final_sentiment VARCHAR(20),
                         confidence_score FLOAT,
-                               
+
                         -- Metadata
                         processed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         kafka_timestamp BIGINT,
-                               
+
                         -- Indexes
                         UNIQUE(tweet_id)
                     )
@@ -168,23 +168,23 @@ class SentimentAnalyzer:
                         like_count INTEGER DEFAULT 0,
                         reply_count INTEGER DEFAULT 0,
                         quote_count INTEGER DEFAULT 0,
-                               
+
                         -- VADER sentiment scores
                         vader_sentiment TEXT,
                         vader_compound REAL,
                         vader_positive REAL,
                         vader_negative REAL,
                         vader_neutral REAL,
-                               
+
                         -- TextBlob sentiment scores
                         textblob_sentiment TEXT,
                         textblob_polarity REAL,
                         textblob_subjectivity REAL,
-                               
+
                         -- Combined sentiment
                         final_sentiment TEXT,
                         confidence_score REAL,
-                               
+  
                         -- Metadat
                         processed_at TEXT DEFAULT CURRENT_TIMESTAMP,
                         kafka_timestamp INTEGER
