@@ -83,3 +83,134 @@ class SentimentAnalyzer:
         except Exception as e:
             self.logger.error(f"Failed to initialize SQLite: {e}")
             raise
+
+    def create_table(self):
+        # Create database tables
+        try:
+            if self.use_postgresql:
+                cursor = self.db_connection.cursor()
+
+                # Create tweets table
+                cursor.execute(
+                    """
+                    CREATE TABLE IF NOT EXIST tweets (
+                        id SERIAL PRIMARY KEY,
+                        tweet_id VARCHAR(50) UNIQUE NOT NULL,
+                        tweet_text TEXT NOT NULL,
+                        cleaned_text TEXT,
+                        created_at TIMESTAMP,
+                        author_id VARCHAR(50),
+                        language VARCHAR(10),
+                        retweet_count INTEGER DEFAULT 0,
+                        like_count INTEGER DEFAULT 0,
+                        reply_count INTEGER DEFAULT 0,
+                        quote_count INTEGER DEFAULT 0,
+
+                        -- VADER sentiment scores
+                        vader_sentiment VARCHAR(20),
+                        vader_compound FLOAT,
+                        vader_positive FLOAT,
+                        vader_negative FLOAT,
+                        vader_neutral FLOAT,
+
+                        -- TextBlob sentiment scores
+                        textblob_sentiment VARCHAR(20),
+                        textblob_polarity FLOAT,
+                        textblob_subjectivity FLOAT,
+
+                        -- Combined sentiment
+                        final_sentiment VARCHAR(20),
+                        confidence_score FLOAT,
+
+                        -- Metadata
+                        processed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        kafka_timestamp BIGINT,
+
+                        -- Indexes
+                        UNIQUE(tweet_id)
+                    )
+                """
+                )
+
+                # Create sentiment_summary table
+                cursor.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS sentiment_summary (
+                        id SERIAL PRIMARY KEY,
+                        date_hour TIMESTAMP,
+                        sentiment VARCHAR(20),
+                        tweet_count INTEGER,
+                        avg_confidence FLOAT,
+                        total_likes INTEGER,
+                        total_retweets INTEGER,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                """
+                )
+
+                cursor.close()
+
+            else:
+                cursor = self.db_connection.cursor()
+
+                # Create tweets table
+                cursor.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS tweets (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        tweet_id TEXT UNIQUE NOT NULL,
+                        tweet_text TEXT NOT NULL,
+                        cleaned_text TEXT,
+                        created_at TEXT,
+                        author_id TEXT,
+                        language TEXT,
+                        retweet_count INTEGER DEFAULT 0,
+                        like_count INTEGER DEFAULT 0,
+                        reply_count INTEGER DEFAULT 0,
+                        quote_count INTEGER DEFAULT 0,
+
+                        -- VADER sentiment scores
+                        vader_sentiment TEXT,
+                        vader_compound REAL,
+                        vader_positive REAL,
+                        vader_negative REAL,
+                        vader_neutral REAL,
+
+                        -- TextBlob sentiment scores
+                        textblob_sentiment TEXT,
+                        textblob_polarity REAL,
+                        textblob_subjectivity REAL,
+
+                        -- Combined sentiment
+                        final_sentiment TEXT,
+                        confidence_score REAL,
+  
+                        -- Metadat
+                        processed_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                        kafka_timestamp INTEGER
+                    )
+                """
+                )
+
+                # Create sentiment_summary table
+                cursor.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS sentiment_summary (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        date_hour TEXT,
+                        sentiment TEXT,
+                        tweet_count INTEGER,
+                        avg_confidence REAL,
+                        total_likes INTEGER,
+                        total_retweets INTEGER,
+                        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+                    )
+                """
+                )
+
+                self.db_connection.commit()
+                cursor.close()
+
+        except Exception as e:
+            self.logger.error(f"Failed to create tables: {e}")
+            raise
