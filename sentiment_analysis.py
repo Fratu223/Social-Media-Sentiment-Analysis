@@ -245,3 +245,28 @@ class SentimentAnalyzer:
                 "negative": 0.0,
                 "neutral": 1.0,
             }
+
+    def analyze_sentiment_textblob(self, text: str) -> Dict[str, Any]:
+        # Analyze sentiment using TextBlob
+        try:
+            blob = TextBlob(text)
+            polarity = blob.sentiment.polarity
+            subjectivity = blob.sentiment.subjectivity
+
+            # Determine sentiment based on polarity
+            if polarity > 0.1:
+                sentiment = "positive"
+            elif polarity < -0.1:
+                sentiment = "negative"
+            else:
+                sentiment = "neutral"
+
+            return {
+                "sentiment": sentiment,
+                "polarity": polarity,
+                "subjectivity": subjectivity,
+            }
+
+        except Exception as e:
+            self.logger.error(f"Error in TextBlob analysis: {e}")
+            return {"sentiment": "neutral", "polarity": 0.0, "subjectivity": 0.0}
