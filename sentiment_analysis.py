@@ -84,7 +84,7 @@ class SentimentAnalyzer:
             self.logger.error(f"Failed to initialize SQLite: {e}")
             raise
 
-    def create_table(self):
+    def create_tables(self):
         # Create database tables
         try:
             if self.use_postgresql:
@@ -315,3 +315,51 @@ class SentimentAnalyzer:
         except Exception as e:
             self.logger.error(f"Error combining sentiment scores: {e}")
             return {"sentiment": "neutral", "confidence": 0.0, "combined_score": 0.0}
+
+    def analyze_text(self, text: str) -> Dict[str, Any]:
+        # Perform complete sentiment analysis
+        try:
+            # Clean text
+            cleaned_text = text.strip()
+
+            if not cleaned_text:
+                return {
+                    "sentiment": "neutral",
+                    "confidence": 0.0,
+                    "compund": 0.0,
+                    "positive": 0.0,
+                    "negative": 0.0,
+                    "neutral": 1.0,
+                }
+
+            # Analyze with both methods
+            vader_result = self.analyze_sentiment_vader(cleaned_text)
+            textblob_result = self.analyze_sentiment_textblob(cleaned_text)
+            combined_result = self.combine_sentiment_scores(
+                vader_result, textblob_result
+            )
+
+            # Return combined result with detailed scores
+            return {
+                "sentiment": combined_result["sentiment"],
+                "confidence": combined_result["confidence"],
+                "compound": vader_result["compound"],
+                "positive": vader_result["positive"],
+                "negative": vader_result["negative"],
+                "neutral": vader_result["neutral"],
+                "polarity": textblob_result["polarity"],
+                "subjectivity": textblob_result["subjectivity"],
+            }
+
+        except Exception as e:
+            self.logger.error(f"Error in text analysis: {e}")
+            return {
+                "sentiment": "neutral",
+                "confidence": 0.0,
+                "compound": 0.0,
+                "positive": 0.0,
+                "negative": 0.0,
+                "neutral": 1.0,
+                "polarity": 0.0,
+                "subjectivity": 0.0,
+            }
