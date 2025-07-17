@@ -214,3 +214,34 @@ class SentimentAnalyzer:
         except Exception as e:
             self.logger.error(f"Failed to create tables: {e}")
             raise
+
+    def analyze_sentiment_vader(self, text: str) -> Dict[str, Any]:
+        # Analyze sentiment using VADER
+        try:
+            scores = self.vader_analyzer.polarity_scores(text)
+
+            # Determine sentiment based on compound score
+            if scores['compound'] >= 0.05:
+                sentiment = 'positive'
+            elif scores['compound'] <= -0.05:
+                sentiment = 'negative'
+            else:
+                sentiment = 'neutral'
+
+            return {
+                'sentiment': sentiment,
+                'compound': scores['compound'],
+                'positive': scores['pos'],
+                'negative': scores['neg'],
+                'neutral': scores['neu']
+            }
+        
+        except Exception as e:
+            self.logger.error(f"Error in VADER analysis: {e}")
+            return {
+                'sentiment': 'neutral',
+                'compound': 0.0,
+                'positive': 0.0,
+                'negative': 0.0,
+                'neutral': 1.0
+            }
