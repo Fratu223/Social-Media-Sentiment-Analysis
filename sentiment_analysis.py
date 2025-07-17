@@ -270,3 +270,48 @@ class SentimentAnalyzer:
         except Exception as e:
             self.logger.error(f"Error in TextBlob analysis: {e}")
             return {"sentiment": "neutral", "polarity": 0.0, "subjectivity": 0.0}
+
+    def combine_sentiment_scores(
+        self, vader_result: Dict, textblob_result: Dict
+    ) -> Dict[str, Any]:
+        # Combine VADER and TextBlob results for final sentiment
+        try:
+            # Simple ensemble approach
+            vader_weight = 0.6
+            textblob_weight = 0.4
+
+            # Convert sentiment to numeric scores
+            sentiment_to_score = {"positive": 1, "neutral": 0, "negative": -1}
+
+            vader_score = sentiment_to_score.get(vader_result["sentiment"], 0)
+            textblob_score = sentiment_to_score.get(textblob_result["sentiment"], 0)
+
+            # Weighted combination
+            combined_score = (
+                vader_weight * vader_score + textblob_weight * textblob_score
+            )
+
+            # Determine final sentiment
+            if combined_score > 0.1:
+                final_sentiment = "positive"
+            elif combined_score < -0.1:
+                final_sentiment = "negative"
+            else:
+                final_sentiment = "neutral"
+
+            # Calculate confidence based on agreement and strength
+            confidence = abs(combined_score)
+            if vader_result["sentiment"] == textblob_result["sentiment"]:
+                confidence *= 1.2
+
+            confidence = min(confidence, 1.0)
+
+            return {
+                "sentiment": final_sentiment,
+                "confidence": confidence,
+                "combined_score": combined_score,
+            }
+
+        except Exception as e:
+            self.logger.error(f"Error combining sentiment scores: {e}")
+            return {"sentiment": "neutral", "confidence": 0.0, "combined_score": 0.0}
