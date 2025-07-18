@@ -446,3 +446,74 @@ class SentimentAnalyzer:
         except Exception as e:
             self.logger.error(f"Error storing tweet: {e}")
             return False
+
+    def get_sentiment_summary(self, hours: int = 24) -> List[Dict[str, Any]]:
+        # Get sentiment summary for the last N hours
+        try:
+            cursor = self.db_connection.cursor()
+
+            if self.use_postgresql:
+                query = """
+                    SELECT
+                        final_sentiment,
+                        COUNT(*) as tweet_count,
+                        AVG(confidence_score) as avg_confidence,
+                        SUM(like_count) as total_likes,
+                        SUM(retweet_count) as total_retweets
+                    FROM tweets
+                    WHERE processed_at >= NOW() - INTERVAL '%s hours'
+                    GROUP BY final_sentiment
+                    ORDER BY tweet_count DESC
+                """
+                cursor.execute(query, (hours,))
+            else:
+                query = """
+                    SELECT
+                        final_sentiment,
+                        COUNT(*) as tweet_count,
+                        AVG(confidence_score) as avg_confidence,
+                        SUM(like_count) as total_likes,
+                        SUM(retweet_count) as total_retweets
+                    FROM tweets
+                    WHERE processed_at >= datetime('now', '-%s hours')
+                    GROUP BY final_sentiment
+                    ORDER BY tweet_count DESC
+                """
+                cursor.execute(query, (hours,))
+
+            results = cursor.fetchall()
+            cursor.close()
+
+            # Convert to list of dictionaries
+            summary = []
+            for row in results:
+                if self.use_postgresql:
+                    summary.append(
+                        {
+                            "sentiment": row[0],
+                            "tweet_count": row[1],
+                            "avg_confidence": float(row[2]) if row[2] else 0.0,
+                            "total_likes": row[3] or 0,
+                            "total_retweets": row[4] or 0,
+                        }
+                    )
+                else:
+                    summary.append(
+                        {
+                            "sentiment": row["final_sentiment"],
+                            "tweet_count": row["tweet_count"],
+                            "avg_confidence": (
+                                float(row["avg_confidence"])
+                                if row["avg_confidence"]
+                                else 0.0
+                            ),
+                            "total_likes": row["total_likes"] or 0,
+                            "total_retweets": row["total_retweets"] or 0,
+                        }
+                    )
+
+            return summary
+
+        except Exception as e:
+            self.logger.error(f"Error getting sentiment summary: {e}")
+            return []
