@@ -363,3 +363,86 @@ class SentimentAnalyzer:
                 "polarity": 0.0,
                 "subjectivity": 0.0,
             }
+
+    def store_tweet(self, tweet_data: Dict[str, Any]) -> bool:
+        # Store tweet with sentiment analysis in database
+        try:
+            cursor = self.db_connection.cursor()
+
+            # Extract tweet information
+            tweet_id = tweet_data.get("tweet_id")
+            tweet_text = tweet_data.get("tweet_text", "")
+            cleaned_text = tweet_data.get("cleaned_text", tweet_text)
+
+            # Analyze sentiment
+            sentiment_result = self.analyze_text(cleaned_text)
+
+            # Prepare insert query
+            if self.use_postgresql:
+                query = """
+                    INSERT INTO tweets (
+                        tweet_id, tweet_text, cleaned_text, created_at, author_id,
+                        language, retweet_count, like_count, reply_count, quote_count,
+                        vader_sentiment, vader_compound, vader_positive, vader_negative,
+                        textblob_sentiment, textblob_polarity, textblob_subjectivity,
+                        final_sentiment, confidence_score, kafka_timestamp
+                    ) VALUES (
+                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                    ) ON CONFLICT (tweet_id) DO NOTHING
+                """
+            else:
+                query = """
+                    INSERT OR IGNORE INTO tweets (
+                        tweet_id, tweet_text, cleaned_text, created_at, author_id,
+                        language, retweet_count, like_count, reply_count, quote_count,
+                        vader_sentiment, vader_compound, vader_positive, vader_negative,
+                        textblob_sentiment, textblob_polarity, textblob_subjectivity,
+                        final_sentiment, confidence_score, kafka_timestamp
+                    ) VALUES (
+                        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                    )
+                """
+
+            # Execute query
+            cursor.execute(
+                query,
+                (
+                    tweet_id,
+                    tweet_text,
+                    cleaned_text,
+                    tweet_data.get("created_at"),
+                    tweet_data.get("author_id"),
+                    tweet_data.get("language"),
+                    tweet_data.get("retweet_count", 0),
+                    tweet_data.get("like_count", 0),
+                    tweet_data.get("reply_count", 0),
+                    tweet_data.get("quote_count", 0),
+                    sentiment_result["sentiment"],
+                    sentiment_result["compound"],
+                    sentiment_result["positive"],
+                    sentiment_result["negative"],
+                    sentiment_result["neutral"],
+                    sentiment_result["sentiment"],
+                    sentiment_result["polarity"],
+                    sentiment_result["subjectivity"],
+                    sentiment_result["sentiment"],
+                    sentiment_result["confidence"],
+                    tweet_data.get("kafka_timestamp"),
+                ),
+            )
+
+            if not self.use_postgresql:
+                self.db_connection.commit()
+
+            cursor.close()
+
+            self.logger.info(
+                f"Stored tweet {tweet_id} with sentiment: {sentiment_result['sentiment']}"
+            )
+            return True
+
+        except Exception as e:
+            self.logger.error(f"Error storing tweet: {e}")
+            return False
