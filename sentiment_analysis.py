@@ -517,3 +517,57 @@ class SentimentAnalyzer:
         except Exception as e:
             self.logger.error(f"Error getting sentiment summary: {e}")
             return []
+
+    def get_recent_tweets(
+        self, limit: int = 50, sentiment_filter: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        # Get recent tweets with optional sentiment filter
+        try:
+            cursor = self.db_connection.cursor()
+
+            if sentiment_filter:
+                if self.use_postgresql:
+                    query = """
+                        SELECT * FROM tweets
+                        WHERE final_sentiment = %s
+                        ORDER BY processed_at DESC
+                        LIMIT %s
+                    """
+                    cursor.execute(query, (sentiment_filter, limit))
+                else:
+                    query = """
+                        SELECT * FROM tweets
+                        WHERE final_sentiment = ?
+                        ORDER BY processed_at DESC
+                        LIMIT ?
+                    """
+                    cursor.execute(query, (sentiment_filter, limit))
+            else:
+                if self.use_postgresql:
+                    query = """
+                        SELECT * FROM tweets
+                        ORDER BY processed_at DESC
+                        LIMIT %s
+                    """
+                    cursor.execute(query, (limit,))
+                else:
+                    query = """
+                        SELECT * FROM tweets
+                        ORDER BY processed_at DESC
+                        LIMIT ?
+                    """
+                    cursor.execute(query, (limit,))
+
+            results = cursor.fetchall()
+            cursor.close()
+
+            # Convert to list of dictionaries
+            tweets = []
+            for row in results:
+                tweets.append(dict(row))
+
+            return tweets
+
+        except Exception as e:
+            self.logger.error(f"Error getting recent tweets: {e}")
+            return []
