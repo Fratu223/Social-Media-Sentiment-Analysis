@@ -571,3 +571,145 @@ class SentimentAnalyzer:
         except Exception as e:
             self.logger.error(f"Error getting recent tweets: {e}")
             return []
+
+    def setup_routes(self):
+        # Setup Flask routes for API endpoints
+
+        @self.app.route("/analyze", methods=["POST"])
+        def analyze_sentiment():
+            # Analyze sentiment of provided text
+            try:
+                data = request.get_json()
+                text = data.get("text", "")
+
+                if not text:
+                    return jsonify({"error": "No text provided"}), 400
+
+                result = self.analyze_text(text)
+                return jsonify(result)
+
+            except Exception as e:
+                self.logger.error(f"Error in /analyze endpoint: {e}")
+                return jsonify({"error": "Internal server error"}), 500
+
+        @self.app.route("/store", methods=["POST"])
+        def store_tweet():
+            # Store tweet with sentiment analysis
+            try:
+                tweet_data = request.get_json()
+
+                if not tweet_data:
+                    return jsonify({"error": "No tweet data provided"}), 400
+
+                success = self.store_tweet(tweet_data)
+
+                if success:
+                    return jsonify(
+                        {"status": "success", "message": "Tweet stored successfully"}
+                    )
+                else:
+                    return jsonify({"error": "Failed to store tweet"}), 500
+
+            except Exception as e:
+                self.logger.error(f"Error in /store endpoint: {e}")
+                return jsonify({"error": "Internal server error"}), 500
+
+        @self.app.route("/summary", methods=["GET"])
+        def get_summary():
+            # Get sentiment summary
+            try:
+                hours = request.args.get("hours", 24, type=int)
+                summary = self.get_sentiment_summary(hours)
+
+                return jsonify(
+                    {
+                        "summary": summary,
+                        "hours": hours,
+                        "total_tweets": sum(item["tweet_count"] for item in summary),
+                    }
+                )
+
+            except Exception as e:
+                self.logger.error(f"Error in /summary endpoint: {e}")
+                return jsonify({"error": "Internal server error"}), 500
+
+        @self.app.route("/tweets", methods=["GET"])
+        def get_tweets():
+            # Get recent tweets
+            try:
+                limit = request.args.get("limit", 50, type=int)
+                sentiment_filter = request.args.get("sentiment")
+
+                tweets = self.get_recent_tweets(limit, sentiment_filter)
+
+                return jsonify(
+                    {
+                        "tweets": tweets,
+                        "count": len(tweets),
+                        "sentiment_filter": sentiment_filter,
+                    }
+                )
+
+            except Exception as e:
+                self.logger.error(f"Error in /tweets endpoint: {e}")
+                return jsonify({"error": "Internal server error"}), 500
+
+        @self.app.route("/health", methods=["GET"])
+        def health_check():
+            # Health check enpoint
+            return jsonify(
+                {
+                    "status": "healthy",
+                    "timestamp": datetime.now().isoformat(),
+                    "database": "postgresql" if self.use_postgresql else "sqlite",
+                }
+            )
+
+        @self.app.route("/export", methods=["GET"])
+        def export_data():
+            # Export data to CSV
+            try:
+                format_type = request.args.get("format", "csv").lower()
+                hours = request.args.get("hours", 24, type=int)
+
+                cursor = self.db_connection.cursor()
+
+                if self.use_postgresql:
+                    query = """
+                        SELECT * FROM tweets
+                        WHERE processed_at >= NOW() - INTERVAL '%s hours'
+                        ORDER BY processed_at DESC
+                    """
+                    cursor.execute(query, (hours,))
+                else:
+                    query = """
+                        SELECT * FROM tweets
+                        WHERE processed_at >= datetime('now', '-%s hours')
+                        ORDER BY processed_at DESC
+                    """
+                    cursor.execute(query, (hours,))
+
+                results = cursor.fetchall()
+                cursor.close()
+
+                if format_type == "csv":
+                    # Convert to pandas DataFrame for easy CSV export
+                    df = pd.DataFrame(results)
+                    csv_data = df.to_csv(index=False)
+
+                    return (
+                        csv_data,
+                        200,
+                        {
+                            "Content-Type": "text/csv",
+                            "Content-Disposition": f"attachment; filname=tweets_{hours}h.csv",
+                        },
+                    )
+                else:
+                    # Return JSON
+                    tweets = [dict(row) for row in results]
+                    return jsonify({"tweets": tweets, "count": len(tweets)})
+
+            except Exception as e:
+                self.logger.error(f"Error in /export endpoint: {e}")
+                return jsonify({"error": "Internal server error"}), 500
