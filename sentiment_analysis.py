@@ -718,3 +718,12 @@ class SentimentAnalyzer:
         # Run the Flask server
         self.logger.info(f"Starting sentiment analysis server on {host}:{port}")
         self.app.run(host=host, port=port, debug=debug)
+
+    def cleanup(self):
+        # Clean up resources
+        if self.db_connection:
+            try:
+                self.db_connection.close()
+                self.logger.info("Database connenction closed")
+            except Exception as e:
+                self.logger.error(f"Error closing database connection: {e}")
