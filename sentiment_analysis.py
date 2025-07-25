@@ -733,3 +733,59 @@ class SentimentAnalyzer:
         self.logger.info(f"Received signal {signum}, shutting down...")
         self.cleanup()
         sys.exit(0)
+
+
+def main():
+    # Load environment variables
+    load_dotenv()
+
+    # Database configuration
+    use_postrgesql = os.getenv("USE_POSTGRESQL", "false").lower() == "true"
+
+    db_config = None
+    if use_postrgesql:
+        db_config = {
+            "host": os.getenv("POSTGRES_HOST", "localhost"),
+            "database": os.getenv("POSTGRES_DB", "twitter_sentiment"),
+            "user": os.getenv("POSTGRES_USER", "postgres"),
+            "password": os.getenv("POSTGRES_PASSWORD", "password"),
+            "port": int(os.getenv("POSTGRES_PORT", "5432")),
+        }
+
+    # Server configuration
+    HOST = os.getenv("SENTIMENT_HOST", "0.0.0.0")
+    PORT = int(os.getenv("SENTIMENT_PORT", "5000"))
+    DEBUG = os.getenv("DEBUG", "false").lower() == "true"
+
+    # Initialize analyzer
+    try:
+        analyzer = SentimentAnalyzer(db_config)
+
+        # Setup signal handlers
+        signal.signal(signal.SIGINT, analyzer.signal_handler)
+        signal.signal(signal.SIGTERM, analyzer.signal_handler)
+
+        print("Starting sentiment analysis service...")
+        print(f"Ddatabase: {'PostgreSQL' if use_postrgesql else 'SQLite'}")
+        print(f"Server: http//{HOST}:{PORT}")
+        print("Available endpoints:")
+        print("  POST /analyze - Analyze text sentiment")
+        print("  POST /store - Store tweet with sentiment")
+        print("  GET /summary - Get sentiment summary")
+        print("  GET /tweets - Get recent tweets")
+        print("  GET /export - Export data to CSV")
+        print("  GET /health - Health check")
+        print("Press Ctrl+C to stop...")
+
+        # Run server
+        analyzer.run_server(HOST, PORT, DEBUG)
+
+    except KeyboardInterrupt:
+        print("\nShutdown requested by user")
+    except Exception as e:
+        print(f"Error: {e}")
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
