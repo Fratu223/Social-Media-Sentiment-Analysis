@@ -727,3 +727,9 @@ class SentimentAnalyzer:
                 self.logger.info("Database connenction closed")
             except Exception as e:
                 self.logger.error(f"Error closing database connection: {e}")
+
+    def signal_handler(self, signum, frame):
+        # Handle shutdown signals
+        self.logger.info(f"Received signal {signum}, shutting down...")
+        self.cleanup()
+        sys.exit(0)
