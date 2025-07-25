@@ -713,8 +713,8 @@ class SentimentAnalyzer:
             except Exception as e:
                 self.logger.error(f"Error in /export endpoint: {e}")
                 return jsonify({"error": "Internal server error"}), 500
-    
-    def run_server(self, host: str = '0.0.0.0', port: int = 5000, debug: bool = False):
+
+    def run_server(self, host: str = "0.0.0.0", port: int = 5000, debug: bool = False):
         # Run the Flask server
         self.logger.info(f"Starting sentiment analysis server on {host}:{port}")
         self.app.run(host=host, port=port, debug=debug)
