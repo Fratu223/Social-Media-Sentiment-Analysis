@@ -336,6 +336,7 @@ class TwitterSparkStreamer:
                 final_df.writeStream.outputMode("append")
                 .format("console")
                 .option("truncate", "false")
+                .option("numRows", 5)
                 .trigger(processingTime="30 seconds")
                 .start()
             )
@@ -357,7 +358,7 @@ class TwitterSparkStreamer:
             # Forward enriched data to sentiment analysis service
             def send_to_sentiment_service(df, epoch_id):
                 try:
-                    # Convert to JSON and send to sentiment anlysis service
+                    # Convert to JSON and send to sentiment analysis service
                     tweets_json = df.toJSON().collect()
 
                     for tweet_json in tweets_json:
