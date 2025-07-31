@@ -159,6 +159,27 @@ class SimpleTwitterStreamer:
             self.logger.error(f"Error processing tweet: {e}")
             return None
 
+    def save_to_file(self, tweet_data: Dict[str, Any]):
+        # Save tweet data to file
+        try:
+            output_path = self.kafka_config.get(
+                "output_path", "/tmp/twitter_sentiment_output"
+            )
+
+            # Create directory if it doesn't exist
+            os.makedirs(output_path, exist_ok=True)
+
+            # Generate filename with timestamp
+            timestamp = time.strftime("%Y%m%d_%h")
+            filename = f"{output_path}/tweets_{timestamp}.jsonl"
+
+            # Append to file
+            with open(filename, "a", encoding="utf-8") as f:
+                f.write(json.dumps(tweet_data) + "\n")
+
+        except Exception as e:
+            self.logger.error(f"Error saving to file: {e}")
+
     def cleanup(self):
         # Clean up resources
         self.running = False
