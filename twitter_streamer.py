@@ -180,6 +180,27 @@ class SimpleTwitterStreamer:
         except Exception as e:
             self.logger.error(f"Error saving to file: {e}")
 
+    def send_to_sentiment_service(self, tweet_data: Dict[str, Any]):
+        # Send tweet data to sentiment analysis service for storage
+        try:
+            response = requests.post(
+                f"{self.sentiment_api_url.replace('/analyze', '/store')}",
+                json=tweet_data,
+                timeout=5,
+            )
+
+            if response.status_code == 200:
+                self.logger.debug(
+                    f"Sent tweet {tweet_data['tweet_id']} to sentiment service"
+                )
+            else:
+                self.logger.warning(
+                    f"Failed to send tweet to sentiment service: {response.status_code}"
+                )
+
+        except Exception as e:
+            self.logger.error(f"Error sending tweet to sentiment service: {e}")
+
     def cleanup(self):
         # Clean up resources
         self.running = False
