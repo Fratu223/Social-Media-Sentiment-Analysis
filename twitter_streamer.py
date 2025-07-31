@@ -201,6 +201,60 @@ class SimpleTwitterStreamer:
         except Exception as e:
             self.logger.error(f"Error sending tweet to sentiment service: {e}")
 
+    def process_tweets(self):
+        # Main processing loop
+        try:
+            self.logger.info("Starting tweet processing...")
+            processed_count = 0
+
+            for message in self.consumer:
+                if not self.running:
+                    break
+
+                try:
+                    tweet_data = message.value
+
+                    # Process tweet
+                    enriched_tweet = self.process_tweet(tweet_data)
+
+                    if enriched_tweet:
+                        processed_count += 1
+
+                        # Log processing
+                        self.logger.info(
+                            f"Processed tweet {enriched_tweet['tweet_id']}: "
+                            f"{enriched_tweet['sentiment']} "
+                            f"({enriched_tweet['sentiment_confidence']:.2f}) - "
+                            f"{enriched_tweet['cleaned_text'][:50]}..."
+                        )
+
+                        # Save to file
+                        self.save_to_file(enriched_tweet)
+
+                        # Send to sentiment service (async)
+                        threading.Thread(
+                            target=self.send_to_sentiment_service,
+                            args=(enriched_tweet,),
+                            daemon=True,
+                        ).start()
+
+                        # Print summary every 10 tweets
+                        if processed_count % 10 == 0:
+                            self.logger.info(
+                                f"Processed {processed_count} tweets so far..."
+                            )
+
+                except Exception as e:
+                    self.logger.error(f"Error processing message: {e}")
+                    continue
+
+        except KeyboardInterrupt:
+            self.logger.info("Processing interrupted by user")
+        except Exception as e:
+            self.logger.error(f"Error in processing loop: {e}")
+        finally:
+            self.cleanup()
+
     def cleanup(self):
         # Clean up resources
         self.running = False
