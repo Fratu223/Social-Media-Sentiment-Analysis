@@ -210,7 +210,7 @@ class SimpleTwitterStreamer:
             for message in self.consumer:
                 if not self.running:
                     break
-                
+
                 try:
                     tweet_data = message.value
 
@@ -235,17 +235,19 @@ class SimpleTwitterStreamer:
                         threading.Thread(
                             target=self.send_to_sentiment_service,
                             args=(enriched_tweet,),
-                            daemon=True
+                            daemon=True,
                         ).start()
 
                         # Print summary every 10 tweets
                         if processed_count % 10 == 0:
-                            self.logger.info(f"Processed {processed_count} tweets so far...")
+                            self.logger.info(
+                                f"Processed {processed_count} tweets so far..."
+                            )
 
                 except Exception as e:
                     self.logger.error(f"Error processing message: {e}")
                     continue
-        
+
         except KeyboardInterrupt:
             self.logger.info("Processing interrupted by user")
         except Exception as e:
