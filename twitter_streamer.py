@@ -258,12 +258,12 @@ class SimpleTwitterStreamer:
     def cleanup(self):
         # Clean up resources
         self.running = False
-        if self.spark:
+        if self.consumer:
             try:
-                self.spark.stop()
-                self.logger.info("Spark session stopped")
+                self.consumer.close()
+                self.logger.info("Kafka consumer closed")
             except Exception as e:
-                self.logger.error(f"Error stopping Spark session: {e}")
+                self.logger.error(f"Error closing Kafka consumer: {e}")
 
     def signal_handler(self, signum, frame):
         # Handle shutdown signals
