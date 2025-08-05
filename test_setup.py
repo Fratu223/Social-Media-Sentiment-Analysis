@@ -56,3 +56,26 @@ def test_imports():
 
     print(("All imports successful!\n"))
     return True
+
+
+def test_environment():
+    print("Testing environment variables...")
+
+    load_dotenv()
+
+    twitter_token = os.getenv("TWITTER_BEARER_TOKEN")
+    if twitter_token:
+        print(f"TWITTER_BEARER_TOKEN found (length: {len(twitter_token)})")
+    else:
+        print("TWITTER_BEARER_TOKEN not found in environment")
+
+    kafka_servers = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
+    print(f"Kafka servers: {kafka_servers}")
+
+    kafka_topic = os.getenv("KAFKA_TOPIC", "twitter-search")
+    print(f"Kafka topic: {kafka_topic}")
+
+    search_query = os.getenv("SEARCH_QUERY", "premierleague OR championship")
+    print(f"Search query: {search_query}")
+
+    print()
