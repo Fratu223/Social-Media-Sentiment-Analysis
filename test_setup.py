@@ -1,3 +1,4 @@
+# flake8: noqa: F401
 # Test script to verify all components work correctly
 
 # Import needed libraries
