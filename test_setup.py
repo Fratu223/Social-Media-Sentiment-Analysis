@@ -187,3 +187,51 @@ def test_file_system():
     except Exception as e:
         print(f"File system error: {e}\n")
         return False
+
+
+def main():
+    # Run all tests
+    print("=" * 50)
+    print("TWITTER SENTIMENT PIPELINE - SETUP TEST")
+    print("=" * 50)
+    print()
+
+    tests = [
+        ("Package Imports", test_imports),
+        ("Environment Variables", test_environment),
+        ("Sentiment Analysis", test_sentiment_analysis),
+        ("File System", test_file_system),
+        ("Kafka Connection", test_kafka_connection),
+    ]
+
+    results = {}
+
+    for test_name, test_func in tests:
+        print(f"Running {test_name} test...")
+        try:
+            results[test_name] = test_func()
+        except Exception as e:
+            print(f"{test_name} test failed with exception: {e}")
+            results[test_name] = False
+        print("-" * 30)
+
+    # Summary
+    print("\nTEST SUMMARY:")
+    print("=" * 20)
+
+    all_passed = True
+    for test_name, passed in results.items():
+        status = "PASS" if passed else "FAIL"
+        print(f"{test_name}: {status}")
+        if not passed:
+            all_passed = False
+
+    print()
+    if all_passed:
+        print("All tests passed! The pipeline is ready to be ran")
+    else:
+        print("Some tests failed. Please fix the issues above before proceeding.")
+
+
+if __name__ == "__main__":
+    main()
