@@ -121,3 +121,39 @@ def test_sentiment_analysis():
     except Exception as e:
         print(f"Sentiment analysis error: {e}\n")
         return False
+
+
+def test_kafka_connection():
+    # Test Kafka connection
+    print("Testing Kafka connection...")
+
+    try:
+        from kafka import KafkaProducer, KafkaConsumer
+        from kafka.errors import KafkaError
+
+        load_dotenv
+        bootstrap_servers = os.getenv(
+            "KAFKA_BOOTSTRAP_SERVERS", "localhost:9092"
+        ).split(",")
+
+        # Test producer
+        producer = KafkaProducer(
+            bootstrap_servers=bootstrap_servers,
+            value_serializer=lambda v: json.dumps(v).encode("utf-8"),
+        )
+
+        # Test consumer
+        consumer = KafkaConsumer(
+            bootstrap_servers=bootstrap_servers, consumer_timeout_ms=1000
+        )
+
+        producer.close()
+        consumer.close()
+
+        print("Kafka connection successful!\n")
+        return True
+
+    except Exception as e:
+        print(f"Kafka connection failed: {e}")
+        print("Make sure Kafka is running on localhost:9092\n")
+        return False
