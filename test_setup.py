@@ -157,3 +157,33 @@ def test_kafka_connection():
         print(f"Kafka connection failed: {e}")
         print("Make sure Kafka is running on localhost:9092\n")
         return False
+
+
+def test_file_system():
+    # Test file system permissions
+    print("Testing file system...")
+
+    try:
+        # Test output directory creation
+        output_path = "./test_output"
+        os.makedirs(output_path, exist_ok=True)
+
+        # Test file writing
+        test_file = os.path.join(output_path, "test.json")
+        with open(test_file, "w") as f:
+            json.dump({"test": "data"}, f)
+
+        # Test file reading
+        with open(test_file, "r") as f:
+            data = json.load(f)
+
+        # Cleanup
+        os.remove(test_file)
+        os.rmdir(output_path)
+
+        print("File system operations successful!\n")
+        return True
+
+    except Exception as e:
+        print(f"File system error: {e}\n")
+        return False
