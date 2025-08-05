@@ -59,6 +59,7 @@ def test_imports():
 
 
 def test_environment():
+    # Test environment variables
     print("Testing environment variables...")
 
     load_dotenv()
@@ -79,3 +80,44 @@ def test_environment():
     print(f"Search query: {search_query}")
 
     print()
+
+
+def test_sentiment_analysis():
+    # Test sentiment analysis functionality
+    print("Testing sentiment analysis..")
+
+    try:
+        from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+        from textblob import TextBlob
+
+        analyzer = SentimentIntensityAnalyzer
+
+        # Test texts
+        test_texts = [
+            "I love this amazing product!",
+            "This is terribel and awful.",
+            "It's okay, nothing special.",
+            "Best day ever! So excited!",
+        ]
+
+        for text in test_texts:
+            # VADER
+            vader_scores = analyzer.polarity_scores(text)
+
+            # TextBlob
+            blob = TextBlob(text)
+            textblob_sentiment = blob.sentiment
+
+            print(f"Text: '{text}'")
+            print(f"    VADER: {vader_scores}")
+            print(
+                f"    TextBlob: polarity={textblob_sentiment.polarity:.3f}, subjectivity={textblob_sentiment.subjectivity:.3f}"
+            )
+            print()
+
+        print("Sentiment analysis working correctly")
+        return True
+
+    except Exception as e:
+        print(f"Sentiment analysis error: {e}\n")
+        return False
