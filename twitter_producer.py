@@ -253,7 +253,7 @@ def main():
     POLL_INTERVAL = int(os.getenv("POLL_INTERVAL", "60"))
 
     # Search query
-    SEARCH_QUERY = os.getenv("SEARCH_QUERY", "premierleague OR championship")
+    SEARCH_QUERY = os.getenv("SEARCH_QUERY", "#premierleague OR #championship")
 
     if not BEARER_TOKEN:
         print("Error: TWITTER_BEARER_TOKEN environment variable is required")
