@@ -76,7 +76,7 @@ def test_environment():
     kafka_topic = os.getenv("KAFKA_TOPIC", "twitter-search")
     print(f"Kafka topic: {kafka_topic}")
 
-    search_query = os.getenv("SEARCH_QUERY", "premierleague OR championship")
+    search_query = os.getenv("SEARCH_QUERY", "#premierleague OR #championship")
     print(f"Search query: {search_query}")
 
     print()
