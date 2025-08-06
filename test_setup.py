@@ -90,7 +90,7 @@ def test_sentiment_analysis():
         from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
         from textblob import TextBlob
 
-        analyzer = SentimentIntensityAnalyzer
+        analyzer = SentimentIntensityAnalyzer()
 
         # Test texts
         test_texts = [
