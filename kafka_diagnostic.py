@@ -28,14 +28,14 @@ def test_kafka_connection():
         consumer = KafkaConsumer(
             bootstrap_servers=bootstrap_servers.split(","),
             consumer_timeout_ms=5000,
-            api_version=(0, 10, 1)
+            api_version=(0, 10, 1),
         )
 
         print("Consumer created successfully")
 
         # Get cluster metadata
         metadata = consumer.list_consumer_groups()
-        print("Connected to cluster")
+        print(f"Connected to cluster {metadata}")
 
         consumer.close()
 
