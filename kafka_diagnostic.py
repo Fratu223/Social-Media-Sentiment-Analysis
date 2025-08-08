@@ -64,3 +64,32 @@ def test_kafka_connection():
     except Exception as e:
         print(f"Topic listing failed: {e}")
         return False
+
+    # Test 3: Test producer
+    try:
+        print("\nTest 3: Testing producer...")
+        producer = KafkaProducer(
+            bootstrap_servers=bootstrap_servers.split(","),
+            value_serializer=lambda v: json.dumps(v).encode("utf-8"),
+            api_version=(0, 10, 1),
+        )
+
+        # Send test message
+        test_message = {
+            "test": True,
+            "timestamp": int(time.time()),
+            "message": "Kafka diagnostic test",
+        }
+
+        future = producer.send(topic, test_message)
+        record_metadata = future.get(timeout=10)
+
+        print(f"Test message sent to topic '{topic}'")
+        print(f"    Partition: {record_metadata.partition}")
+        print(f"    Offset: {record_metadata.offset}")
+
+        producer.close()
+
+    except Exception as e:
+        print(f"Producer test failed: {e}")
+        return False
