@@ -42,3 +42,25 @@ def test_kafka_connection():
     except Exception as e:
         print(f"Consumer creation failed: {e}")
         return False
+
+    # Test 2: List topics
+    try:
+        print("\nTest 2: Listing topics...")
+        consumer = KafkaConsumer(
+            bootstrap_servers=bootstrap_servers.split(","), consumer_timeout_ms=5000
+        )
+
+        topics = consumer.topics()
+        print(f"Available topics: {list(topics)}")
+
+        if topic in topics:
+            print(f"Target topic '{topic}' exists")
+        else:
+            print(f"Target topic '{topic}' does not exist")
+            print("You may need to create it or check your twitter_producer.py")
+
+        consumer.close()
+
+    except Exception as e:
+        print(f"Topic listing failed: {e}")
+        return False
