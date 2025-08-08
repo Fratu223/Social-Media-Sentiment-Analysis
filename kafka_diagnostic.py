@@ -129,3 +129,19 @@ def test_kafka_connection():
     print("\n" + "=" * 40)
     print("All Kafka tests passed!")
     return True
+
+
+def main():
+    print("KAFKA CONNECTION DIAGNOSTIC")
+    print("=" * 40)
+
+    success = test_kafka_connection()
+
+    if not success:
+        print("Kafka connections is not working properly, please fix the error above.")
+    else:
+        print("\nKafka connection is working properly!")
+
+
+if __name__ == "__main__":
+    main()
