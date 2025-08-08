@@ -93,3 +93,39 @@ def test_kafka_connection():
     except Exception as e:
         print(f"Producer test failed: {e}")
         return False
+
+    # Test 4: Test consumer with topic
+    try:
+        print("\nTest 4: Testing consumer subscription...")
+        consumer = KafkaConsumer(
+            topic,
+            bootstrap_servers=bootstrap_servers.split(","),
+            auto_offset_reset="latest",
+            consumer_timeout_ms=5000,
+            value_deserializer=lambda m: json.loads(m.decode("utf-8")),
+            group_id="diagnostic-group",
+        )
+
+        print(f"Consumer subscribed to topic '{topic}'")
+
+        # Try to read one message
+        print("Waiting for messages (5 seconds)...")
+        messages = consumer.poll(timeout_ms=5000)
+
+        if messages:
+            print(f"Received {len(messages)} message(s)")
+            for topic_partition, msgs in messages.items():
+                for msg in msgs:
+                    print(f"    Message: {msg.value}")
+        else:
+            print("No messages received (this is normal if no producer is running)")
+
+        consumer.close()
+
+    except Exception as e:
+        print(f"Consumer subscription failed: {e}")
+        return False
+
+    print("\n" + "=" * 40)
+    print("All Kafka tests passed!")
+    return True
