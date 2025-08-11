@@ -55,7 +55,6 @@ class SimpleTwitterStreamer:
                     value_deserializer=lambda m: json.loads(m.decode("utf-8")),
                     consumer_timeout_ms=30000,
                     api_version=(0, 10, 1),
-                    connection_max_idle_ms=9 * 60 * 1000,
                     request_timeout_ms=30000,
                     retry_backoff_ms=100,
                     reconnect_backoff_ms=50,
