@@ -35,11 +35,15 @@ class SimpleTwitterStreamer:
         # Initialize Kafka consumer with retry logic
         max_retries = 3
         retry_delay = 5
-        
+
         for attempt in range(max_retries):
             try:
-                self.logger.info(f"Initializing Kafka consumer (attempt {attempt + 1}/{max_retries})...")
-                self.logger.info(f"Bootstrap servers: {self.kafka_config['bootstrap_servers']}")
+                self.logger.info(
+                    f"Initializing Kafka consumer (attempt {attempt + 1}/{max_retries})..."
+                )
+                self.logger.info(
+                    f"Bootstrap servers: {self.kafka_config['bootstrap_servers']}"
+                )
                 self.logger.info(f"Topic: {self.kafka_config['topic']}")
 
                 self.consumer = KafkaConsumer(
@@ -54,21 +58,21 @@ class SimpleTwitterStreamer:
                     connection_max_idle_ms=9 * 60 * 1000,
                     request_timeout_ms=30000,
                     retry_backoff_ms=100,
-                    reconnect_backoff_ms=50
+                    reconnect_backoff_ms=50,
                 )
 
                 # Test the connection by listing topics
                 topics = self.consumer.topics()
                 self.logger.info(f"Available topics: {list(topics)}")
 
-                if self.kafka_config['topic'] in topics:
+                if self.kafka_config["topic"] in topics:
                     self.logger.info(f"Topic '{self.kafka_config['topic']}' found")
                 else:
-                    self.logger.warning(f"Topic '{self.kafka_config['topic']}' not found, but consumer will wait for it")
+                    self.logger.warning(
+                        f"Topic '{self.kafka_config['topic']}' not found, but consumer will wait for it"
+                    )
 
-                self.logger.info(
-                    "Kafka consumer initialized successfully"
-                )
+                self.logger.info("Kafka consumer initialized successfully")
                 return
 
             except Exception as e:
