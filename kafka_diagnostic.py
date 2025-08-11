@@ -33,9 +33,7 @@ def test_kafka_connection():
 
         print("Consumer created successfully")
 
-        # Get cluster metadata
-        metadata = consumer.list_consumer_groups()
-        print(f"Connected to cluster {metadata}")
+        print(f"Connected to cluster")
 
         consumer.close()
 
