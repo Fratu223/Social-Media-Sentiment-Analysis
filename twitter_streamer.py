@@ -32,24 +32,53 @@ class SimpleTwitterStreamer:
         self.init_kafka_consumer()
 
     def init_kafka_consumer(self):
-        # Initialize Kafka consumer
-        try:
-            self.consumer = KafkaConsumer(
-                self.kafka_config["topic"],
-                bootstrap_servers=self.kafka_config["bootstrap_servers"].split(","),
-                auto_offset_reset="latest",
-                enable_auto_commit=True,
-                group_id="twitter-sentiment-group",
-                value_deserializer=lambda m: json.loads(m.decode("utf-8")),
-                consumer_timeout_ms=10000,
-            )
-            self.logger.info(
-                f"Kafka consumer initialized for topic: {self.kafka_config['topic']}"
-            )
+        # Initialize Kafka consumer with retry logic
+        max_retries = 3
+        retry_delay = 5
+        
+        for attempt in range(max_retries):
+            try:
+                self.logger.info(f"Initializing Kafka consumer (attempt {attempt + 1}/{max_retries})...")
+                self.logger.info(f"Bootstrap servers: {self.kafka_config['bootstrap_servers']}")
+                self.logger.info(f"Topic: {self.kafka_config['topic']}")
 
-        except Exception as e:
-            self.logger.error(f"Failed to initialize Kafka consumer: {e}")
-            raise
+                self.consumer = KafkaConsumer(
+                    self.kafka_config["topic"],
+                    bootstrap_servers=self.kafka_config["bootstrap_servers"].split(","),
+                    auto_offset_reset="latest",
+                    enable_auto_commit=True,
+                    group_id="twitter-sentiment-group",
+                    value_deserializer=lambda m: json.loads(m.decode("utf-8")),
+                    consumer_timeout_ms=30000,
+                    api_version=(0, 10, 1),
+                    connection_max_idle_ms=9 * 60 * 1000,
+                    request_timeout_ms=30000,
+                    retry_backoff_ms=100,
+                    reconnect_backoff_ms=50
+                )
+
+                # Test the connection by listing topics
+                topics = self.consumer.topics()
+                self.logger.info(f"Available topics: {list(topics)}")
+
+                if self.kafka_config['topic'] in topics:
+                    self.logger.info(f"Topic '{self.kafka_config['topic']}' found")
+                else:
+                    self.logger.warning(f"Topic '{self.kafka_config['topic']}' not found, but consumer will wait for it")
+
+                self.logger.info(
+                    "Kafka consumer initialized successfully"
+                )
+                return
+
+            except Exception as e:
+                self.logger.error(f"Attempt {attempt + 1} failed: {e}")
+                if attempt < max_retries - 1:
+                    self.logger.info(f"Retrying in {retry_delay} seconds...")
+                    time.sleep(retry_delay)
+                else:
+                    self.logger.error("All connection attempts failed")
+                    raise
 
     def clean_text(self, text: str) -> str:
         # Clean tweet text for better sentiment analysis
