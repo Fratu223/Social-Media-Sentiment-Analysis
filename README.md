@@ -27,3 +27,9 @@ python-dotenv==1.0.1
 flask==2.2.5
 werkzeug==2.2.3
 ```
+
+### System Dependencies
+
+1. **Java** - OpenJDK 11 or higher
+2. **Apache Kafka** - Message broker
+3. **PostgreSQL** - Database (optional, SQLite is used by default)
