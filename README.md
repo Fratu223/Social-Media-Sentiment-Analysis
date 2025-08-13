@@ -33,3 +33,40 @@ werkzeug==2.2.3
 1. **Java** - OpenJDK 11 or higher
 2. **Apache Kafka** - Message broker
 3. **PostgreSQL** - Database (optional, SQLite is used by default)
+
+## Environment Setup
+
+Create a `.env` file in your project directory:
+
+```bash
+# Twitter API Configuration
+TWITTER_BEARER_TOKEN=your_twitter_bearer_token_here
+
+# Kafka Configuration
+KAFKA_BOOTSTRAP_SERVERS=localhost:9092
+KAFKA_TOPIC=twitter-search
+POLL_INTERVAL=60
+
+# Search Configuration
+SEARCH_QUERY=premierleague OR championship
+
+# Spark Configuration
+SENTIMENT_API_URL=http://localhost:5000/analyze
+OUTPUT_PATH=/tmp/twitter_sentiment_output
+
+# Database Configuration (PostgreSQL - optional)
+USE_POSTGRESQL=false
+POSTGRES_HOST=localhost
+POSTGRES_DB=twitter_sentiment
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=password
+POSTGRES_PORT=5432
+
+# SQLite Configuration (default)
+SQLITE_DB_PATH=twitter_sentiment.db
+
+# Sentiment Analysis Service
+SENTIMENT_HOST=0.0.0.0
+SENTIMENT_PORT=5000
+DEBUG=false
+```
