@@ -1,2 +1,6 @@
-# Social-Media-Sentiment-Analysis
-Real-time pipeline that ingests tweets using Twitter API, processes the data through Kafka and Spark Streaming, performs sentiment analysis, and stores results in a data warehouse (e.g., PostgreSQL, BigQuery). Visualize insights with dashboards (e.g., Power BI or Streamlit).
+# Twitter Sentiment Analysis Pipeline
+
+This pipeline consists of three main components:
+1. **twitter_producer.py** - Fetches tweets from Twitter API and publishes to Kafka
+2. **twitter_streamer.py** - Processes tweets using Kafka
+3. **sentiment_analysis.py** - Provides sentiment analysis API and data storage
