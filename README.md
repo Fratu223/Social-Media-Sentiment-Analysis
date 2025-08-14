@@ -113,7 +113,7 @@ GRANT ALL PRIVILEGES ON DATABASE twitter_sentiment TO sentiment_user;
 
 ### 4. Get Twitter API Bearer Token
 
-1. Go to [Twitter Developer Portal](https://developer.twitter.com/)
+1. Go to [X Developer Portal](https://developer.x.com/en/porta)
 2. Create a new app
 3. Generate Bearer Token
 4. Add it to your `.env` file
