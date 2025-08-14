@@ -141,3 +141,14 @@ This will:
 - Connect to Kafka and consume tweets
 - Process tweets and call sentiment analysis API
 - Output results to console and files
+
+### Terminal 3: Start Twitter Producer
+
+```bash
+python twitter_producer.py
+```
+
+This will:
+- Connect to Twitter API
+- Search for tweets based on your query
+- Publish tweets to Kafka topic
