@@ -96,3 +96,17 @@ bin/kafka-server-start.sh config/server.properties
 # Create topic
 bin/kafka-topics.sh --create --topic twitter-search --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
 ```
+
+### 3. Setup Database (Optional PostgreSQL)
+
+```bash
+# Install PostgreSQL
+sudo apt-get install postgresql postgresql-contrib
+
+# Create database
+sudo -u postgres psql
+CREATE DATABASE twitter_sentiment;
+CREATE USER sentiment_user WITH PASSWORD 'password';
+GRANT ALL PRIVILEGES ON DATABASE twitter_sentiment TO sentiment_user;
+\q
+```
