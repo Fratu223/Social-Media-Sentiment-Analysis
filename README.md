@@ -117,3 +117,16 @@ GRANT ALL PRIVILEGES ON DATABASE twitter_sentiment TO sentiment_user;
 2. Create a new app
 3. Generate Bearer Token
 4. Add it to your `.env` file
+
+## Running the Pipeline
+
+### Terminal 1: Start Sentiment Analysis Service
+
+```bash
+python sentiment_analysis.py
+```
+
+This will:
+- Start Flask API server on port 5000
+- Initialize database (SQLite by default)
+- Provide endpoints for sentiment analysis and data retrieval
