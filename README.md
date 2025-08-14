@@ -73,8 +73,26 @@ DEBUG=false
 
 ## Installation Steps
 
-### 1. Install Python Dependecies
+### 1. Install Python Dependencies
 
 ```bash
 pip install -r requirements.txt
+```
+
+### 2. Download and Setup Kafka
+
+```bash
+# Download Kafka
+wget https://downloads.apache.org/kafka/2.13-3.5.0/kafka_2.13-3.5.0.tgz
+tar -xzf kafka_2.13-3.5.0.tgz
+cd kafka_2.13-3.5.0
+
+# Start Zookeeper
+bin/zookeeper-server-start.sh config/zookeeper.properties
+
+# Start Kafka (in another terminal)
+bin/kafka-server-start.sh config/server.properties
+
+# Create topic
+bin/kafka-topics.sh --create --topic twitter-search --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
 ```
