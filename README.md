@@ -130,3 +130,14 @@ This will:
 - Start Flask API server on port 5000
 - Initialize database (SQLite by default)
 - Provide endpoints for sentiment analysis and data retrieval
+
+### Terminal 2: Start Twitter Streaming
+
+```bash
+python twitter_streamer.py
+```
+
+This will:
+- Connect to Kafka and consume tweets
+- Process tweets and call sentiment analysis API
+- Output results to console and files
