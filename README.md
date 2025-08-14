@@ -70,3 +70,11 @@ SENTIMENT_HOST=0.0.0.0
 SENTIMENT_PORT=5000
 DEBUG=false
 ```
+
+## Installation Steps
+
+### 1. Install Python Dependecies
+
+```bash
+pip install -r requirements.txt
+```
